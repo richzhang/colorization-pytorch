@@ -145,7 +145,7 @@ class Visualizer():
     def print_current_losses(self, epoch, i, losses, t, t_data):
         message = '(epoch: %d, iters: %d, time: %.3f, data: %.3f) ' % (epoch, i, t, t_data)
         for k, v in losses.items():
-            message += '%s: %.3f ' % (k, v)
+            message += '%s: %.3f, ' % (k, v)
 
         print(message)
         with open(self.log_name, "a") as log_file:

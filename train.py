@@ -4,11 +4,34 @@ from data import CreateDataLoader
 from models import create_model
 from util.visualizer import Visualizer
 
+import torch
+import torchvision
+import torchvision.transforms as transforms
+import torchvision.datasets as datasets
+import torchvision.models as models
+from torch.autograd import Variable
+
+from util import util
+from IPython import embed
+
 if __name__ == '__main__':
     opt = TrainOptions().parse()
-    data_loader = CreateDataLoader(opt)
-    dataset = data_loader.load_data()
-    dataset_size = len(data_loader)
+    opt.input_nc = 1
+    opt.output_nc = 2
+
+    # dataset = torchvision.datasets.ImageFolder(IMG_DIR,
+        # transform=transforms.Compose([transforms.ToTensor(),]))
+    dataset = torchvision.datasets.ImageFolder(opt.dataroot, 
+        transform=transforms.Compose([
+            transforms.Resize(288),
+            transforms.RandomResizedCrop(256),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor()]))
+    dataset_loader = torch.utils.data.DataLoader(dataset,batch_size=10, shuffle=True)
+
+    # data_loader = CreateDataLoader(opt)
+    # dataset = data_loader.load_data()
+    dataset_size = len(dataset)
     print('#training images = %d' % dataset_size)
 
     model = create_model(opt)
@@ -16,12 +39,16 @@ if __name__ == '__main__':
     visualizer = Visualizer(opt)
     total_steps = 0
 
-    for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
+    for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay):
         epoch_start_time = time.time()
         iter_data_time = time.time()
         epoch_iter = 0
 
-        for i, data in enumerate(dataset):
+        # for i, data in enumerate(dataset):
+        for i, data_raw in enumerate(dataset_loader):
+            data = util.get_colorization_data(data_raw)
+            # print('Image size',data['A'].shape[2:])
+
             iter_start_time = time.time()
             if total_steps % opt.print_freq == 0:
                 t_data = iter_start_time - iter_data_time
@@ -48,6 +75,7 @@ if __name__ == '__main__':
                 model.save_networks('latest')
 
             iter_data_time = time.time()
+
         if epoch % opt.save_epoch_freq == 0:
             print('saving the model at the end of epoch %d, iters %d' %
                   (epoch, total_steps))

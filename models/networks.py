@@ -36,7 +36,7 @@ def get_scheduler(optimizer, opt):
     return scheduler
 
 
-def init_weights(net, init_type='normal', gain=0.02):
+def init_weights(net, init_type='xavier', gain=0.02):
     def init_func(m):
         classname = m.__class__.__name__
         if hasattr(m, 'weight') and (classname.find('Conv') != -1 or classname.find('Linear') != -1):
@@ -60,7 +60,7 @@ def init_weights(net, init_type='normal', gain=0.02):
     net.apply(init_func)
 
 
-def init_net(net, init_type='normal', gpu_ids=[]):
+def init_net(net, init_type='xavier', gpu_ids=[]):
     if len(gpu_ids) > 0:
         assert(torch.cuda.is_available())
         net.to(gpu_ids[0])
@@ -69,25 +69,25 @@ def init_net(net, init_type='normal', gpu_ids=[]):
     return net
 
 
-def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropout=False, init_type='normal', gpu_ids=[]):
+def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropout=False, init_type='xavier', gpu_ids=[]):
     netG = None
     norm_layer = get_norm_layer(norm_type=norm)
 
     if which_model_netG == 'resnet_9blocks':
-        netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9)
+        netG = ResnetGenerator(input_nc+output_nc+1, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9)
     elif which_model_netG == 'resnet_6blocks':
-        netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6)
+        netG = ResnetGenerator(input_nc+output_nc+1, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6)
     elif which_model_netG == 'unet_128':
-        netG = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
+        netG = UnetGenerator(input_nc+output_nc+1, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     elif which_model_netG == 'unet_256':
-        netG = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
+        netG = UnetGenerator(input_nc+output_nc+1, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % which_model_netG)
     return init_net(netG, init_type, gpu_ids)
 
 
 def define_D(input_nc, ndf, which_model_netD,
-             n_layers_D=3, norm='batch', use_sigmoid=False, init_type='normal', gpu_ids=[]):
+             n_layers_D=3, norm='batch', use_sigmoid=False, init_type='xavier', gpu_ids=[]):
     netD = None
     norm_layer = get_norm_layer(norm_type=norm)
 
@@ -249,8 +249,8 @@ class UnetGenerator(nn.Module):
 
         self.model = unet_block
 
-    def forward(self, input):
-        return self.model(input)
+    def forward(self, input_A, input_B, mask_B):
+        return self.model(torch.cat((input_A,input_B,mask_B),dim=1))
 
 
 # Defines the submodule with skip connection.

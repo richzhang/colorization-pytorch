@@ -2,7 +2,7 @@ import os
 import torch
 from collections import OrderedDict
 from . import networks
-
+from IPython import embed
 
 class BaseModel():
     def name(self):
@@ -78,6 +78,10 @@ class BaseModel():
             if isinstance(name, str):
                 # float(...) works for both scalar tensor and float number
                 errors_ret[name] = float(getattr(self, 'loss_' + name))
+
+        errors_ret['|ab|_gt'] = float(torch.mean(torch.abs(self.real_B[:,1:,:,:])).cpu())
+        errors_ret['|ab|_pr'] = float(torch.mean(torch.abs(self.fake_B[:,1:,:,:])).cpu())
+
         return errors_ret
 
     # save models to the disk

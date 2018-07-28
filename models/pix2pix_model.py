@@ -1,8 +1,9 @@
 import torch
 from util.image_pool import ImagePool
+from util import util
 from .base_model import BaseModel
 from . import networks
-
+from IPython import embed
 
 class Pix2PixModel(BaseModel):
     def name(self):
@@ -50,9 +51,11 @@ class Pix2PixModel(BaseModel):
         self.real_A = input['A' if AtoB else 'B'].to(self.device)
         self.real_B = input['B' if AtoB else 'A'].to(self.device)
         self.image_paths = input['A_paths' if AtoB else 'B_paths']
+        self.hint_B = input['hint_B'].to(self.device)
+        self.mask_B = input['mask_B'].to(self.device)
 
     def forward(self):
-        self.fake_B = self.netG(self.real_A)
+        self.fake_B = self.netG(self.real_A, self.hint_B, self.mask_B)
 
     def backward_D(self):
         # Fake
@@ -60,11 +63,13 @@ class Pix2PixModel(BaseModel):
         fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A, self.fake_B), 1))
         pred_fake = self.netD(fake_AB.detach())
         self.loss_D_fake = self.criterionGAN(pred_fake, False)
+        # self.loss_D_fake = 0
 
         # Real
         real_AB = torch.cat((self.real_A, self.real_B), 1)
         pred_real = self.netD(real_AB)
         self.loss_D_real = self.criterionGAN(pred_real, True)
+        # self.loss_D_real = 0
 
         # Combined loss
         self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
@@ -76,11 +81,12 @@ class Pix2PixModel(BaseModel):
         fake_AB = torch.cat((self.real_A, self.fake_B), 1)
         pred_fake = self.netD(fake_AB)
         self.loss_G_GAN = self.criterionGAN(pred_fake, True)
+        # self.loss_G_GAN = 0
 
         # Second, G(A) = B
-        self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B) * self.opt.lambda_A
+        self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B)
 
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1
+        self.loss_G = self.loss_G_GAN*self.opt.lambda_GAN + self.loss_G_L1*self.opt.lambda_A
 
         self.loss_G.backward()
 
@@ -97,3 +103,25 @@ class Pix2PixModel(BaseModel):
         self.optimizer_G.zero_grad()
         self.backward_G()
         self.optimizer_G.step()
+
+
+    def get_current_visuals(self):
+        from collections import OrderedDict
+        visual_ret = OrderedDict()
+        # for name in self.visual_names:
+            # if isinstance(name, str):
+                # visual_ret[name] = getattr(self, name)
+
+        # embed()
+        visual_ret['gray'] = util.lab2rgb(torch.cat((self.real_A, 0*self.real_B), dim=1))
+        visual_ret['real'] = util.lab2rgb(torch.cat((self.real_A, self.real_B), dim=1))
+        visual_ret['fake'] = util.lab2rgb(torch.cat((self.real_A, self.fake_B), dim=1))
+        
+        visual_ret['mask'] = torch.cat((self.mask_B,self.mask_B,self.mask_B),dim=1)
+        visual_ret['hint'] = util.lab2rgb(torch.cat((self.real_A, self.hint_B), dim=1))
+
+        visual_ret['real_ab'] = util.lab2rgb(torch.cat((.3+0*self.real_A, self.real_B), dim=1))
+        visual_ret['fake_ab'] = util.lab2rgb(torch.cat((.3+0*self.real_A, self.fake_B), dim=1))
+        visual_ret['hint_ab'] = visual_ret['mask']*util.lab2rgb(torch.cat((.3+0*self.real_A, self.hint_B), dim=1))
+
+        return visual_ret

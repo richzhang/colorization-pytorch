@@ -20,6 +20,9 @@ def CreateDataset(opt):
     elif opt.dataset_mode == 'single':
         from data.single_dataset import SingleDataset
         dataset = SingleDataset()
+    elif opt.dataset_mode == 'color':
+        from data.color_dataset import ColorDataset
+        dataset = ColorDataset()
     else:
         raise ValueError("Dataset [%s] not recognized." % opt.dataset_mode)
 
