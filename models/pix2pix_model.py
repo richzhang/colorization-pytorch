@@ -24,7 +24,9 @@ class Pix2PixModel(BaseModel):
             self.loss_names = []
 
         if(self.opt.classification):
-            self.loss_names += ['G_CE','G_L1_max','G_L1_mean','G_entr','G_L1_reg','0']
+            self.loss_names += ['G_CE','G_L1_max','G_L1_mean','G_entr','G_L1_reg',]
+            self.loss_names += ['G_fake_real','G_fake_hint','G_real_hint',]
+            self.loss_names += ['0',]
         else:
             # self.loss_names += ['G_Huber', 'D_real', 'D_fake']
             self.loss_names += ['G_L1','G_Huber','G_fake_real','G_fake_hint','G_real_hint','0']
@@ -141,9 +143,9 @@ class Pix2PixModel(BaseModel):
         self.loss_0 = 0
 
         # self.loss_G_Huber = self.criterionL1(self.fake_B, self.real_B)
-        # self.loss_G_fake_real = self.criterionL1(self.fake_B*self.mask_B, self.real_B*self.mask_B) / mask_avg
-        # self.loss_G_fake_hint = self.criterionL1(self.fake_B*self.mask_B, self.hint_B*self.mask_B) / mask_avg
-        # self.loss_G_real_hint = self.criterionL1(self.real_B*self.mask_B, self.hint_B*self.mask_B) / mask_avg
+        self.loss_G_fake_real = 10*torch.mean(self.criterionL1(self.fake_B_reg*self.mask_B_nc, self.real_B*self.mask_B_nc)) / mask_avg
+        self.loss_G_fake_hint = 10*torch.mean(self.criterionL1(self.fake_B_reg*self.mask_B_nc, self.hint_B*self.mask_B_nc)) / mask_avg
+        self.loss_G_real_hint = 10*torch.mean(self.criterionL1(self.real_B*self.mask_B_nc, self.hint_B*self.mask_B_nc)) / mask_avg
 
         if(self.opt.classification):
             # embed()
@@ -172,8 +174,8 @@ class Pix2PixModel(BaseModel):
             if(self.opt.classification):
                 self.loss_G = self.loss_G_CE*self.opt.lambda_A + self.loss_G_L1_reg
             else:
-            # to do: fix this
-            self.loss_G = self.loss_G_Huber*self.opt.lambda_A
+                # to do: fix this
+                self.loss_G = self.loss_G_Huber*self.opt.lambda_A
 
         self.loss_G.backward()
 
