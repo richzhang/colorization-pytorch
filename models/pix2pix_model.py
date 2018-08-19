@@ -24,7 +24,9 @@ class Pix2PixModel(BaseModel):
             self.loss_names = []
 
         if(self.opt.classification):
-            self.loss_names += ['G_CE','G_L1_max','G_L1_mean','G_entr','G_L1_reg','0']
+            self.loss_names += ['G_CE','G_L1_max','G_L1_mean','G_entr','G_L1_reg',]
+            self.loss_names += ['G_fake_real','G_fake_hint','G_real_hint',]
+            self.loss_names += ['0',]
         else:
             # self.loss_names += ['G_Huber', 'D_real', 'D_fake']
             self.loss_names += ['G_L1','G_Huber','G_fake_real','G_fake_hint','G_real_hint','0']
@@ -141,9 +143,9 @@ class Pix2PixModel(BaseModel):
         self.loss_0 = 0
 
         # self.loss_G_Huber = self.criterionL1(self.fake_B, self.real_B)
-        # self.loss_G_fake_real = self.criterionL1(self.fake_B*self.mask_B, self.real_B*self.mask_B) / mask_avg
-        # self.loss_G_fake_hint = self.criterionL1(self.fake_B*self.mask_B, self.hint_B*self.mask_B) / mask_avg
-        # self.loss_G_real_hint = self.criterionL1(self.real_B*self.mask_B, self.hint_B*self.mask_B) / mask_avg
+        self.loss_G_fake_real = 10*torch.mean(self.criterionL1(self.fake_B_reg*self.mask_B_nc, self.real_B*self.mask_B_nc)) / mask_avg
+        self.loss_G_fake_hint = 10*torch.mean(self.criterionL1(self.fake_B_reg*self.mask_B_nc, self.hint_B*self.mask_B_nc)) / mask_avg
+        self.loss_G_real_hint = 10*torch.mean(self.criterionL1(self.real_B*self.mask_B_nc, self.hint_B*self.mask_B_nc)) / mask_avg
 
         if(self.opt.classification):
             # embed()
@@ -156,6 +158,7 @@ class Pix2PixModel(BaseModel):
 
             self.loss_G_L1_reg = 10*torch.mean(self.criterionL1(self.fake_B_reg, self.real_B))
         else:
+            # to do: fix this
             self.loss_G_L1 = torch.mean(self.criterionL1(self.fake_B, self.real_B))
 
             self.loss_G_Huber = torch.mean(self.criterionHuber(self.fake_B, self.real_B))
@@ -171,6 +174,7 @@ class Pix2PixModel(BaseModel):
             if(self.opt.classification):
                 self.loss_G = self.loss_G_CE*self.opt.lambda_A + self.loss_G_L1_reg
             else:
+                # to do: fix this
                 self.loss_G = self.loss_G_Huber*self.opt.lambda_A
 
         self.loss_G.backward()
@@ -208,10 +212,9 @@ class Pix2PixModel(BaseModel):
             visual_ret['fake_max'] = util.lab2rgb(torch.cat((self.real_A, self.fake_B_dec_max), dim=1))
             visual_ret['fake_mean'] = util.lab2rgb(torch.cat((self.real_A, self.fake_B_dec_mean), dim=1))
             visual_ret['fake_reg'] = util.lab2rgb(torch.cat((self.real_A, self.fake_B_reg), dim=1))
-        else:
-            visual_ret['fake'] = util.lab2rgb(torch.cat((self.real_A, self.fake_B), dim=1))
+        # else:
+        #     visual_ret['fake'] = util.lab2rgb(torch.cat((self.real_A, self.fake_B), dim=1))
         
-        # visual_ret['mask'] = self.mask_B_nc.expand(-1,3,-1,-1)
         visual_ret['hint'] = util.lab2rgb(torch.cat((self.real_A, self.hint_B), dim=1))
 
         visual_ret['real_ab'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.real_B), dim=1))
@@ -226,10 +229,11 @@ class Pix2PixModel(BaseModel):
             C = self.fake_B_distr.shape[1]
             # scale to [-1, 2], then clamped to [-1, 1]
             visual_ret['fake_entr'] = torch.clamp(3*self.fake_B_entr.expand(-1,3,-1,-1)/np.log(C)-1, -1, 1)
-        else:
-            visual_ret['fake_ab'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.fake_B), dim=1))
+        # else:
+        #     visual_ret['fake_ab'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.fake_B), dim=1))
 
-        # visual_ret['hint_ab'] = visual_ret['mask']*util.lab2rgb(torch.cat((.3+torch.zeros_like(self.real_A), self.hint_B), dim=1))
+        visual_ret['mask'] = self.mask_B_nc.expand(-1,3,-1,-1)
+        visual_ret['hint_ab'] = visual_ret['mask']*util.lab2rgb(torch.cat((.3+torch.zeros_like(self.real_A), self.hint_B), dim=1))
 
         return visual_ret
     # return traning losses/errors. train.py will print out these errors as debugging information
