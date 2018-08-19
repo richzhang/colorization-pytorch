@@ -173,9 +173,8 @@ def get_colorization_data(data_raw, l_norm=100, ab_norm=110, l_cent=50, mask_cen
         data['A'] = data['A'][mask,:,:,:]
         data['B'] = data['B'][mask,:,:,:]
         # print('Removed %i points'%torch.sum(mask==0).numpy())
-
-    if(torch.sum(mask)==0):
-        return None
+        if(torch.sum(mask)==0):
+            return None
 
     return add_color_points(data, p=p, mask_cent=mask_cent)
 

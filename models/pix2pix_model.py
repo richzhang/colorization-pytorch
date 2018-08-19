@@ -24,7 +24,7 @@ class Pix2PixModel(BaseModel):
             self.loss_names = []
 
         if(self.opt.classification):
-            self.loss_names += ['G_CE','G_entr','loss_G_entr_hint',]
+            self.loss_names += ['G_CE','G_entr','G_entr_hint',]
             self.loss_names += ['G_L1_max','G_L1_mean','G_entr','G_L1_reg',]
             self.loss_names += ['G_fake_real','G_fake_hint','G_real_hint',]
             self.loss_names += ['0',]
@@ -227,14 +227,15 @@ class Pix2PixModel(BaseModel):
             # embed()
             visual_ret['fake_ab_reg'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.fake_B_reg), dim=1))
 
+            visual_ret['mask'] = self.mask_B_nc.expand(-1,3,-1,-1)
+            visual_ret['hint_ab'] = visual_ret['mask']*util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.hint_B), dim=1))
+
             C = self.fake_B_distr.shape[1]
             # scale to [-1, 2], then clamped to [-1, 1]
             visual_ret['fake_entr'] = torch.clamp(3*self.fake_B_entr.expand(-1,3,-1,-1)/np.log(C)-1, -1, 1)
         # else:
         #     visual_ret['fake_ab'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.fake_B), dim=1))
 
-        visual_ret['mask'] = self.mask_B_nc.expand(-1,3,-1,-1)
-        visual_ret['hint_ab'] = visual_ret['mask']*util.lab2rgb(torch.cat((.3+torch.zeros_like(self.real_A), self.hint_B), dim=1))
 
         return visual_ret
     # return traning losses/errors. train.py will print out these errors as debugging information
