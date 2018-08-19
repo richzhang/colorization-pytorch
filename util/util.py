@@ -110,7 +110,7 @@ def xyz2lab(xyz):
 
     mask = (xyz_scale > .008856).type(torch.FloatTensor)
     if(xyz_scale.is_cuda):
-        xyz_scale = xyz_scale.cuda()
+        mask = mask.cuda()
 
     xyz_int = xyz_scale**(1/3.)*mask + (7.787*xyz_scale + 16./116.)*(1-mask)
 

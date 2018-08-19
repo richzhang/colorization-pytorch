@@ -122,15 +122,16 @@ class BaseModel():
                 for key in list(state_dict.keys()):  # need to copy keys here because we mutate in loop
                     self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
 
-                # print('popping bad weights')
-                # state_dict.pop('model9up.0.weight')
-                # state_dict.pop('model9up.0.bias')
-                # state_dict.pop('model10up.0.weight')
-                # state_dict.pop('model10up.0.bias')
-                # params = net.state_dict()
-                # params.update(state_dict)
-                # net.load_state_dict(params)
-                net.load_state_dict(state_dict)
+                print('popping bad weights')
+                state_dict.pop('model9up.0.weight')
+                state_dict.pop('model9up.0.bias')
+                state_dict.pop('model10up.0.weight')
+                state_dict.pop('model10up.0.bias')
+                params = net.state_dict()
+                params.update(state_dict)
+                net.load_state_dict(params)
+
+                # net.load_state_dict(state_dict)
 
     # print network information
     def print_networks(self, verbose):
