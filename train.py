@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     dataset = torchvision.datasets.ImageFolder(opt.dataroot, 
         transform=transforms.Compose([
-            transforms.Resize(opt.loadSize),
+            transforms.Resize((opt.loadSize,opt.loadSize)),
             transforms.RandomResizedCrop(opt.fineSize),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor()]))

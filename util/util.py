@@ -181,7 +181,7 @@ def lab2rgb(lab_rs, opt):
         # embed()
     return out
 
-def get_colorization_data(data_raw, opt, ab_thresh=5., p=.125, num_points=0):
+def get_colorization_data(data_raw, opt, ab_thresh=5., p=.125, num_points=None):
     data = {}
 
     data_lab = rgb2lab(data_raw[0], opt)
@@ -217,6 +217,7 @@ def add_color_patches_rand_gt(data,opt,p=.125,num_points=None,use_avg=True,samp=
         cont_cond = True
         while(cont_cond):
             if(num_points is None): # draw from geometric
+                # embed()
                 cont_cond = np.random.rand() < (1-p)
             else: # add certain number of points
                 cont_cond = pp < num_points
@@ -235,7 +236,7 @@ def add_color_patches_rand_gt(data,opt,p=.125,num_points=None,use_avg=True,samp=
 
             # add color point
             if(use_avg):
-                embed()
+                # embed()
                 data['hint_B'][nn,:,h:h+P,w:w+P] = torch.mean(torch.mean(data['B'][nn,:,h:h+P,w:w+P],dim=2,keepdim=True),dim=1,keepdim=True).view(1,C,1,1)
             else:
                 data['hint_B'][nn,:,h:h+P,w:w+P] = data['B'][nn,:,h:h+P,w:w+P]
