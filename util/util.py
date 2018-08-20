@@ -15,7 +15,6 @@ def tensor2im(input_image, imtype=np.uint8):
     image_numpy = image_tensor[0].cpu().float().numpy()
     if image_numpy.shape[0] == 1:
         image_numpy = np.tile(image_numpy, (3, 1, 1))
-    # image_numpy = (np.transpose(image_numpy, (1, 2, 0)) + 1) / 2.0 * 255.0
     image_numpy = np.clip((np.transpose(image_numpy, (1, 2, 0)) ),0, 1) * 255.0
     return image_numpy.astype(imtype)
 
@@ -79,7 +78,12 @@ def rgb2xyz(rgb): # rgb from [0,1]
     x = .412453*rgb[:,0,:,:]+.357580*rgb[:,1,:,:]+.180423*rgb[:,2,:,:]
     y = .212671*rgb[:,0,:,:]+.715160*rgb[:,1,:,:]+.072169*rgb[:,2,:,:]
     z = .019334*rgb[:,0,:,:]+.119193*rgb[:,1,:,:]+.950227*rgb[:,2,:,:]
-    return torch.cat((x[:,None,:,:],y[:,None,:,:],z[:,None,:,:]),dim=1)
+    out = torch.cat((x[:,None,:,:],y[:,None,:,:],z[:,None,:,:]),dim=1)
+
+    # if(torch.sum(torch.isnan(out))>0):
+        # print('rgb2xyz')
+        # embed()
+    return out
 
 def xyz2rgb(xyz):
     # array([[ 3.24048134, -1.53715152, -0.49853633],
@@ -91,6 +95,7 @@ def xyz2rgb(xyz):
     b = .05564664*xyz[:,0,:,:]-.20404134*xyz[:,1,:,:]+1.05731107*xyz[:,2,:,:]
 
     rgb = torch.cat((r[:,None,:,:],g[:,None,:,:],b[:,None,:,:]),dim=1)
+    rgb = torch.max(rgb,torch.zeros_like(rgb)) # sometimes reaches a small negative number, which causes NaNs
 
     mask = (rgb > .0031308).type(torch.FloatTensor)
     if(rgb.is_cuda):
@@ -98,6 +103,9 @@ def xyz2rgb(xyz):
 
     rgb = (1.055*(rgb**(1./2.4)) - 0.055)*mask + 12.92*rgb*(1-mask)
 
+    # if(torch.sum(torch.isnan(rgb))>0):
+        # print('xyz2rgb')
+        # embed()
     return rgb
 
 def xyz2lab(xyz):
@@ -117,8 +125,13 @@ def xyz2lab(xyz):
     L = 116.*xyz_int[:,1,:,:]-16.
     a = 500.*(xyz_int[:,0,:,:]-xyz_int[:,1,:,:])
     b = 200.*(xyz_int[:,1,:,:]-xyz_int[:,2,:,:])
+    out = torch.cat((L[:,None,:,:],a[:,None,:,:],b[:,None,:,:]),dim=1)
 
-    return torch.cat((L[:,None,:,:],a[:,None,:,:],b[:,None,:,:]),dim=1)
+    # if(torch.sum(torch.isnan(out))>0):
+        # print('xyz2lab')
+        # embed()
+
+    return out
 
 def lab2xyz(lab):
     y_int = (lab[:,0,:,:]+16.)/116.
@@ -141,34 +154,42 @@ def lab2xyz(lab):
         sc = sc.cuda()
 
     out = out*sc
+
+    # if(torch.sum(torch.isnan(out))>0):
+        # print('lab2xyz')
+        # embed()
+
     return out
 
-def rgb2lab(rgb, l_norm=100, ab_norm=110, l_cent=50):
+def rgb2lab(rgb, opt):
     lab = xyz2lab(rgb2xyz(rgb))
-    l_rs = (lab[:,[0],:,:]-l_cent)/l_norm
-    ab_rs = lab[:,1:,:,:]/ab_norm
-    return torch.cat((l_rs,ab_rs),dim=1)
+    l_rs = (lab[:,[0],:,:]-opt.l_cent)/opt.l_norm
+    ab_rs = lab[:,1:,:,:]/opt.ab_norm
+    out = torch.cat((l_rs,ab_rs),dim=1)
+    # if(torch.sum(torch.isnan(out))>0):
+        # print('rgb2lab')
+        # embed()
+    return out
 
-def lab2rgb(lab_rs, l_norm=100, ab_norm=110, l_cent=50):
-    l = lab_rs[:,[0],:,:]*l_norm + l_cent
-    ab = lab_rs[:,1:,:,:]*ab_norm
+def lab2rgb(lab_rs, opt):
+    l = lab_rs[:,[0],:,:]*opt.l_norm + opt.l_cent
+    ab = lab_rs[:,1:,:,:]*opt.ab_norm
     lab = torch.cat((l,ab),dim=1)
+    out = xyz2rgb(lab2xyz(lab))
+    # if(torch.sum(torch.isnan(out))>0):
+        # print('lab2rgb')
+        # embed()
+    return out
 
-    return xyz2rgb(lab2xyz(lab))
-
-def get_colorization_data(data_raw, l_norm=100, ab_norm=110, l_cent=50, mask_cent=.5, ab_thresh=5.,
-    p=.125):
+def get_colorization_data(data_raw, opt, ab_thresh=5., p=.125):
     data = {}
-    # data['A_paths'] = ''
-    # data['B_paths'] = ''
 
-    # print(H,W,Hnew,Wnew,h,w)
-    data_lab = rgb2lab(data_raw[0], l_norm=100, ab_norm=110, l_cent=50, )
+    data_lab = rgb2lab(data_raw[0], opt)
     data['A'] = data_lab[:,[0,],:,:]
     data['B'] = data_lab[:,1:,:,:]
 
     if(ab_thresh > 0): # mask out grayscale images
-        thresh = 1.*ab_thresh/ab_norm
+        thresh = 1.*ab_thresh/opt.ab_norm
         mask = torch.sum(torch.abs(torch.max(torch.max(data['B'],dim=3)[0],dim=2)[0]-torch.min(torch.min(data['B'],dim=3)[0],dim=2)[0]),dim=1) >= thresh
         data['A'] = data['A'][mask,:,:,:]
         data['B'] = data['B'][mask,:,:,:]
@@ -176,11 +197,12 @@ def get_colorization_data(data_raw, l_norm=100, ab_norm=110, l_cent=50, mask_cen
         if(torch.sum(mask)==0):
             return None
 
-    return add_color_points(data, p=p, mask_cent=mask_cent)
+    return add_color_patches_rand_gt(data, opt, p=p)
 
-def add_color_points(data,p=.125,Ps=[1,2,3,4,5,6,7,8,9,], mask_cent=.5):
-# def add_color_points(data,p=.125,Ps=[30,]):
-    # print(data['B'].shape)
+def add_color_patches_rand_gt(data,opt,p=.125,use_avg=True,samp='geom'):
+# Add random color points sampled from ground truth based on:
+#   - geometric distribution, drawn from probability p
+#   - patch sizes Ps
     N,C,H,W = data['B'].shape
 
     data['hint_B'] = torch.zeros_like(data['B'])
@@ -188,85 +210,102 @@ def add_color_points(data,p=.125,Ps=[1,2,3,4,5,6,7,8,9,], mask_cent=.5):
 
     for nn in range(N):
         while(np.random.rand() < (1-p) ):
-            P = np.random.choice(Ps) # patch size
-            # h = np.random.randint(H-P+1)
-            # w = np.random.randint(W-P+1)
-            h = int(np.clip(np.random.normal( (H-P+1)/2., (H-P+1)/4.), 0, H-P))
-            w = int(np.clip(np.random.normal( (W-P+1)/2., (W-P+1)/4.), 0, W-P))
+            P = np.random.choice(opt.sample_Ps) # patch size
 
-            data['hint_B'][nn,:,h:h+P,w:w+P] = torch.mean(torch.mean(data['B'][nn,:,h:h+P,w:w+P],dim=2,keepdim=True),dim=1,keepdim=True).view(1,C,1,1)
-            # data['hint_B'][nn,:,h:h+P,w:w+P] = data['B'][nn,:,h:h+P,w:w+P]
+            # sample location
+            if(samp=='geom'): # geometric distribution
+                h = int(np.clip(np.random.normal( (H-P+1)/2., (H-P+1)/4.), 0, H-P))
+                w = int(np.clip(np.random.normal( (W-P+1)/2., (W-P+1)/4.), 0, W-P))
+            else: # uniform distribution
+                h = np.random.randint(H-P+1)
+                w = np.random.randint(W-P+1)
+
+            # add color point
+            if(use_avg):
+                data['hint_B'][nn,:,h:h+P,w:w+P] = torch.mean(torch.mean(data['B'][nn,:,h:h+P,w:w+P],dim=2,keepdim=True),dim=1,keepdim=True).view(1,C,1,1)
+            else:
+                data['hint_B'][nn,:,h:h+P,w:w+P] = data['B'][nn,:,h:h+P,w:w+P]
+
             data['mask_B'][nn,:,h:h+P,w:w+P] = 1
 
-    data['mask_B']-=mask_cent
+    data['mask_B']-=opt.mask_cent
 
     return data
 
-def add_color(data,mask,mask_cent=.5,h=128,w=128,P=1,a=0,b=0):
-    data[:,0,h:h+P,w:w+P] = a
-    data[:,1,h:h+P,w:w+P] = b
-    mask[:,:,h:h+P,w:w+P] = 1-mask_cent
+# def add_N_color_patches_gt(data,opt,use_avg=True,samp='geom'):
+
+def add_color_patch(data,mask,opt,P=1,hw=[128,128],ab=[0,0]):
+    # Add a color patch at (h,w) with color (a,b)
+    data[:,0,hw[0]:hw[0]+P,hw[1]:hw[1]+P] = 1.*ab[0]/opt.ab_norm
+    data[:,1,hw[0]:hw[0]+P,hw[1]:hw[1]+P] = 1.*ab[1]/opt.ab_norm
+    mask[:,:,hw[0]:hw[0]+P,hw[1]:hw[1]+P] = 1-opt.mask_cent
 
     return (data,mask)
 
-def crop_mult(data,mult=16,Hmax=800,Wmax=1200):
-    # crop to multiple of 4
+def crop_mult(data,mult=16,HWmax=[800,1200]):
+    # crop image to a multiple
     H,W = data.shape[2:]
-    # embed()
-    Hnew = int(min(H/mult*mult,Hmax))
-    Wnew = int(min(W/mult*mult,Wmax))
+    Hnew = int(min(H/mult*mult,HWmax[0]))
+    Wnew = int(min(W/mult*mult,HWmax[1]))
     h = (H-Hnew)/2
     w = (W-Wnew)/2
 
     return data[:,:,h:h+Hnew,w:w+Wnew]
 
-def encode_ab_ind(data_ab, ab_norm=110., ab_max=110., ab_quant=10.):
-    # encode ab value into an index
-    # data_ab   Nx2xHxW \in [-1, 1]
-    # data_q    Nx1xHxW \in [0,Q)
+def encode_ab_ind(data_ab, opt):
+    # Encode ab value into an index
+    # INPUTS
+    #   data_ab   Nx2xHxW \in [-1,1]
+    # OUTPUTS
+    #   data_q    Nx1xHxW \in [0,Q)
 
-    # embed()
-    A = 2*ab_max/ab_quant + 1 # number of bins
-    data_ab_rs = torch.round((data_ab*ab_norm + ab_max)/ab_quant) # normalized bin number
-    data_q = data_ab_rs[:,[0],:,:]*A + data_ab_rs[:,[1],:,:]
+    data_ab_rs = torch.round((data_ab*opt.ab_norm + opt.ab_max)/opt.ab_quant) # normalized bin number
+    data_q = data_ab_rs[:,[0],:,:]*opt.A + data_ab_rs[:,[1],:,:]
     return data_q
 
-def decode_ind_ab(data_q, ab_norm=110., ab_max=110., ab_quant=10.):
-    # decode index into ab value
-    A = 2*ab_max/ab_quant + 1
+def decode_ind_ab(data_q, opt):
+    # Decode index into ab value
+    # INPUTS
+    #   data_q      Nx1xHxW \in [0,Q)
+    # OUTPUTS
+    #   data_ab     Nx2xHxW \in [-1,1]
 
-    data_a = data_q/A
-    data_b = data_q - data_a*A
-    data_ab = torch.cat((data_a[:,None,:,:],data_b[:,None,:,:]),dim=1)
+    data_a = data_q/opt.A
+    data_b = data_q - data_a*opt.A
+    data_ab = torch.cat((data_a,data_b),dim=1)
 
-    data_ab = ((data_ab.type(torch.cuda.FloatTensor)*ab_quant) - ab_max)/ab_norm
+    if(data_q.is_cuda):
+        type_out = torch.cuda.FloatTensor
+    else:
+        type_out = torch.FloatTensor
+    data_ab = ((data_ab.type(type_out)*opt.ab_quant) - opt.ab_max)/opt.ab_norm
 
     return data_ab
 
-def decode_max_ab(data_ab_quant, ab_norm=110., ab_max=110., ab_quant=10.):
-    # data_quant NxQxHxW \in [0,1]
-    # data_ab   Nx2xHxW \in [-1, 1]
-    # embed()
-    data_q = torch.argmax(data_ab_quant,dim=1)
-    return decode_ind_ab(data_q)
-    # data_a_rs = torch.floor(data_q/A)
-    # data_b_rs = data_q - data_a_rs*A
-    # data_ab_rs = torch.cat((data_a_rs,data_b_rs),dim=1)
-    # data_ab = ((data_ab_rs*ab_quant) - ab_max)/ab_norm
+def decode_max_ab(data_ab_quant, opt):
+    # Decode probability distribution by using bin with highest probability
+    # INPUTS
+    #   data_ab_quant   NxQxHxW \in [0,1]
+    # OUTPUTS
+    #   data_ab         Nx2xHxW \in [-1,1]
 
-    # return data_ab
+    data_q = torch.argmax(data_ab_quant,dim=1)[:,None,:,:]
+    return decode_ind_ab(data_q, opt)
 
-def decode_mean(data_ab_quant, ab_norm=110., ab_max=110., ab_quant=10.):
-    # data_quant NxQxHxW \in [0,1]
-    # data_ab_inf Nx2xHxW \in [-110, 110]
+def decode_mean(data_ab_quant, opt):
+    # Decode probability distribution by taking mean over all bins
+    # INPUTS
+    #   data_ab_quant   NxQxHxW \in [0,1]
+    # OUTPUTS
+    #   data_ab_inf     Nx2xHxW \in [-1,1]
 
     (N,Q,H,W) = data_ab_quant.shape
-    A = 2*ab_max/ab_quant + 1
-    a_range = torch.range(-ab_max, ab_max, step=ab_quant)[None,:,None,None]
-    a_range = a_range.cuda()
+    a_range = torch.range(-opt.ab_max, opt.ab_max, step=opt.ab_quant)[None,:,None,None]
+    if(data_ab_quant.is_cuda):
+        a_range = a_range.cuda()
 
     # reshape to AB space
-    data_ab_quant = data_ab_quant.view((N,A,A,H,W))
+    data_ab_quant = data_ab_quant.view((N,opt.A,opt.A,H,W))
     data_a_total = torch.sum(data_ab_quant,dim=2)
     data_b_total = torch.sum(data_ab_quant,dim=1)
 
@@ -274,7 +313,17 @@ def decode_mean(data_ab_quant, ab_norm=110., ab_max=110., ab_quant=10.):
     data_a_inf = torch.sum(data_a_total * a_range,dim=1,keepdim=True)
     data_b_inf = torch.sum(data_b_total * a_range,dim=1,keepdim=True)
 
-    data_ab_inf = torch.cat((data_a_inf,data_b_inf),dim=1)/ab_norm
-    # embed()
+    data_ab_inf = torch.cat((data_a_inf,data_b_inf),dim=1)/opt.ab_norm
 
     return data_ab_inf
+
+def calculate_psnr_np(img1, img2):
+    import numpy as np
+    SE_map = (1.*img1-img2)**2
+    cur_MSE = np.mean(SE_map)
+    return 20*np.log10(255./np.sqrt(cur_MSE))
+
+def calculate_psnr_torch(img1, img2):
+    SE_map = (1.*img1-img2)**2
+    cur_MSE = torch.mean(SE_map)
+    return 20*torch.log10(1./torch.sqrt(cur_MSE))
