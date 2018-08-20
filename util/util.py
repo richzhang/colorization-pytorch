@@ -181,7 +181,7 @@ def lab2rgb(lab_rs, opt):
         # embed()
     return out
 
-def get_colorization_data(data_raw, opt, ab_thresh=5., p=.125):
+def get_colorization_data(data_raw, opt, ab_thresh=5., p=.125, num_points=0):
     data = {}
 
     data_lab = rgb2lab(data_raw[0], opt)
@@ -197,23 +197,36 @@ def get_colorization_data(data_raw, opt, ab_thresh=5., p=.125):
         if(torch.sum(mask)==0):
             return None
 
-    return add_color_patches_rand_gt(data, opt, p=p)
+    return add_color_patches_rand_gt(data, opt, p=p, num_points=num_points)
 
-def add_color_patches_rand_gt(data,opt,p=.125,use_avg=True,samp='geom'):
+def add_color_patches_rand_gt(data,opt,p=.125,num_points=None,use_avg=True,samp='normal'):
 # Add random color points sampled from ground truth based on:
-#   - geometric distribution, drawn from probability p
-#   - patch sizes Ps
+#   Number of points
+#   - if num_points is 0, then sample from geometric distribution, drawn from probability p
+#   - if num_points > 0, then sample that number of points
+#   Location of points
+#   - if samp is 'normal', draw from N(0.5, 0.25) of image
+#   - otherwise, draw from U[0, 1] of image
     N,C,H,W = data['B'].shape
 
     data['hint_B'] = torch.zeros_like(data['B'])
     data['mask_B'] = torch.zeros_like(data['A'])
 
     for nn in range(N):
-        while(np.random.rand() < (1-p) ):
+        pp = 0
+        cont_cond = True
+        while(cont_cond):
+            if(num_points is None): # draw from geometric
+                cont_cond = np.random.rand() < (1-p)
+            else: # add certain number of points
+                cont_cond = pp < num_points
+            if(not cont_cond): # skip out of loop if condition not met
+                continue
+
             P = np.random.choice(opt.sample_Ps) # patch size
 
             # sample location
-            if(samp=='geom'): # geometric distribution
+            if(samp=='normal'): # geometric distribution
                 h = int(np.clip(np.random.normal( (H-P+1)/2., (H-P+1)/4.), 0, H-P))
                 w = int(np.clip(np.random.normal( (W-P+1)/2., (W-P+1)/4.), 0, W-P))
             else: # uniform distribution
@@ -222,17 +235,19 @@ def add_color_patches_rand_gt(data,opt,p=.125,use_avg=True,samp='geom'):
 
             # add color point
             if(use_avg):
+                embed()
                 data['hint_B'][nn,:,h:h+P,w:w+P] = torch.mean(torch.mean(data['B'][nn,:,h:h+P,w:w+P],dim=2,keepdim=True),dim=1,keepdim=True).view(1,C,1,1)
             else:
                 data['hint_B'][nn,:,h:h+P,w:w+P] = data['B'][nn,:,h:h+P,w:w+P]
 
             data['mask_B'][nn,:,h:h+P,w:w+P] = 1
 
+            # increment counter
+            pp+=1
+
     data['mask_B']-=opt.mask_cent
 
     return data
-
-# def add_N_color_patches_gt(data,opt,use_avg=True,samp='geom'):
 
 def add_color_patch(data,mask,opt,P=1,hw=[128,128],ab=[0,0]):
     # Add a color patch at (h,w) with color (a,b)
