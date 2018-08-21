@@ -13,7 +13,7 @@ class BaseOptions():
         self.parser.add_argument('--dataroot', type=str, default='/data/big/dataset/ILSVRC2012/train', help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
         self.parser.add_argument('--batchSize', type=int, default=25, help='input batch size')
         self.parser.add_argument('--loadSize', type=int, default=256, help='scale images to this size')
-        self.parser.add_argument('--fineSize', type=int, default=192, help='then crop to this size')
+        self.parser.add_argument('--fineSize', type=int, default=176, help='then crop to this size')
         self.parser.add_argument('--input_nc', type=int, default=1, help='# of input image channels')
         self.parser.add_argument('--output_nc', type=int, default=2, help='# of output image channels')
         self.parser.add_argument('--ngf', type=int, default=64, help='# of gen filters in first conv layer')
@@ -43,13 +43,14 @@ class BaseOptions():
         self.parser.add_argument('--init_type', type=str, default='normal', help='network initialization [normal|xavier|kaiming|orthogonal]')
         self.parser.add_argument('--verbose', action='store_true', help='if specified, print more debugging information')
         self.parser.add_argument('--suffix', default='', type=str, help='customized suffix: opt.name = opt.name + suffix: e.g., {model}_{which_model_netG}_size{loadSize}')
-        self.parser.add_argument('--ab_norm', type=float, default=110, help='colorization normalization factor')
-        self.parser.add_argument('--ab_max', type=float, default=110, help='maximimum ab value')
-        self.parser.add_argument('--l_norm', type=float, default=100, help='colorization normalization factor')
-        self.parser.add_argument('--l_cent', type=float, default=50, help='colorization centering factor')
-        self.parser.add_argument('--mask_cent', type=float, default=.5, help='mask centering factor')
+        self.parser.add_argument('--ab_norm', type=float, default=110., help='colorization normalization factor')
+        self.parser.add_argument('--ab_max', type=float, default=110., help='maximimum ab value')
         self.parser.add_argument('--ab_quant', type=float, default=10., help='quantization factor')
+        self.parser.add_argument('--l_norm', type=float, default=100., help='colorization normalization factor')
+        self.parser.add_argument('--l_cent', type=float, default=50., help='colorization centering factor')
+        self.parser.add_argument('--mask_cent', type=float, default=.5, help='mask centering factor')
         self.parser.add_argument('--sample_p', type=float, default=1.0, help='sampling geometric distribution, 1.0 means no hints')
+        self.parser.add_argument('--sample_Ps', type=int, nargs='+', default=[1,2,3,4,5,6,7,8,9,], help='patch sizes')
 
         self.parser.add_argument('--results_dir', type=str, default='./results/', help='saves results here.')
 
@@ -73,6 +74,10 @@ class BaseOptions():
         # set gpu ids
         if len(opt.gpu_ids) > 0:
             torch.cuda.set_device(opt.gpu_ids[0])
+
+        # number of bins
+        opt.A = 2*opt.ab_max/opt.ab_quant + 1
+        opt.B = opt.A
 
         args = vars(opt)
 

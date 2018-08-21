@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     dataset = torchvision.datasets.ImageFolder(opt.dataroot, 
         transform=transforms.Compose([
-            transforms.Resize(opt.loadSize),
+            transforms.Resize((opt.loadSize,opt.loadSize)),
             transforms.RandomResizedCrop(opt.fineSize),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor()]))
@@ -44,8 +44,7 @@ if __name__ == '__main__':
         # for i, data in enumerate(dataset):
         for i, data_raw in enumerate(dataset_loader):
             data_raw[0] = data_raw[0].cuda()
-            # embed()
-            data = util.get_colorization_data(data_raw, l_norm=opt.l_norm, ab_norm=opt.ab_norm, l_cent=opt.l_cent, mask_cent=opt.mask_cent, p=opt.sample_p)
+            data = util.get_colorization_data(data_raw, opt, p=opt.sample_p)
             if(data is None):
                 continue
 
