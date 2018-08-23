@@ -22,16 +22,17 @@ if __name__ == '__main__':
     opt = TrainOptions().parse()
     opt.nThreads = 1   # test code only supports nThreads = 1
     opt.batchSize = 1  # test code only supports batchSize = 1
+    opt.serial_batches = True;
     opt.no_flip = True  # no flip
     opt.display_id = -1  # no visdom display
     opt.dataroot = '/data/big/dataset/ILSVRC2012/val2/'
     opt.loadSize = 256
-    opt.how_many = 200
+    opt.how_many = 168
     opt.aspect_ratio = 1.0
 
     dataset = torchvision.datasets.ImageFolder(opt.dataroot, 
         transform=transforms.Compose([
-            transforms.Resize(opt.loadSize),
+            transforms.Resize((opt.loadSize, opt.loadSize)),
             transforms.ToTensor()]))
     dataset_loader = torch.utils.data.DataLoader(dataset,batch_size=opt.batchSize, shuffle=not opt.serial_batches)
 
@@ -57,7 +58,7 @@ if __name__ == '__main__':
         model.set_input(data)
         model.test()
         visuals = model.get_current_visuals()
-        save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
+        # save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
 
         psnrs_auto[i] = util.calculate_psnr_np(util.tensor2im(visuals['real']),util.tensor2im(visuals['fake_reg']))
 
@@ -68,7 +69,7 @@ if __name__ == '__main__':
         model.set_input(data)
         model.test()
         visuals = model.get_current_visuals()
-        save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
+        # save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
 
         psnrs_points[i] = util.calculate_psnr_np(util.tensor2im(visuals['real']),util.tensor2im(visuals['fake_reg']))
 
