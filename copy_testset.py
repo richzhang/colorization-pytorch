@@ -5,7 +5,8 @@ from util import util
 import numpy as np
 
 # original imagenet
-orig_path = '/data/big/dataset/ILSVRC2012/val/'
+# orig_path = '/data/big/dataset/ILSVRC2012/val/'
+orig_path = '/mnt/ILSVRC2012/val'
 
 # new dataset
 new_path = './dataset/ilsvrc2012/val/imgs'

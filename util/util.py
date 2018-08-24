@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from PIL import Image
 import os
+from collections import OrderedDict
 from IPython import embed
 
 # Converts a Tensor into an image array (numpy)
@@ -60,6 +61,14 @@ def mkdir(path):
         os.makedirs(path)
 
 
+def get_subset_dict(in_dict,keys):
+    if(len(keys)):
+        subset = OrderedDict()
+        for key in keys:
+            subset[key] = in_dict[key]
+    else:
+        subset = visuals
+    return subset
 
 
 

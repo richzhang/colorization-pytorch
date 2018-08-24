@@ -18,6 +18,8 @@ from IPython import embed
 import numpy as np
 import progressbar as pb
 
+import datetime as dt
+
 if __name__ == '__main__':
     # embed()
     # opt = TestOptions().parse()
@@ -47,6 +49,12 @@ if __name__ == '__main__':
     model.setup(opt)
     model.eval()
 
+    time = dt.datetime.now()
+    str_now = '%02d_%02d_%02d%02d'%(time.month,time.day,time.hour,time.minute)
+    
+    import shutil
+    shutil.copyfile('./checkpoints/siggraph_reg/latest_net_G.pth','./checkpoints/siggraph_reg/%s.pth'%str_now)
+
     psnrs = np.zeros((opt.how_many,N))
 
     bar = pb.ProgressBar(max_value=opt.how_many)
@@ -75,7 +83,9 @@ if __name__ == '__main__':
 
 psnrs_mean = np.mean(psnrs, axis=0)
 psnrs_std = np.std(psnrs, axis=0)/np.sqrt(opt.how_many)
-np.save('psnrs_mean_08_20_0900',psnrs_mean)
+np.save('psnrs_mean_%s'%str_now,psnrs_mean)
+np.save('psnrs_std_%s'%str_now,psnrs_std)
+np.save('psnrs_%s'%str_now,psnrs)
 print(', ').join(['%.2f'%psnr for psnr in psnrs_mean])
 
 # import matplotlib.pyplot as plt
@@ -89,28 +99,28 @@ print(', ').join(['%.2f'%psnr for psnr in psnrs_mean])
 # print calculate_psnr_np(util.tensor2im(visuals['real']),util.tensor2im(visuals['fake_reg']))
 # print calculate_psnr_torch(visuals['real'],visuals['fake_reg'])
 
-old_psnrs = [[np.load('psnrs_mean_08_19_2000.npy'),'08_19_2000'],
-    [np.load('psnrs_mean_08_20_0000.npy'),'08_20_0000']]
+# old_psnrs = [[np.load('psnrs_mean_08_19_2000.npy'),'08_19_2000'],
+#     [np.load('psnrs_mean_08_20_0000.npy'),'08_20_0000']]
 
-LOAD_DIR = '/data/big/rzhang/src/pix2pix_stroke/tests_auto/random'
-old_results = np.concatenate([np.load('%s/default_random_0_caffe_%04d_%04d_psnrs.npy'%(LOAD_DIR,a,a+100)) for a in range(0,1000,100)])
-old_mean = np.mean(old_results, axis=0)
-old_std = np.std(old_results, axis=0)/np.sqrt(old_results.shape[0])
+#LOAD_DIR = '/data/big/rzhang/src/pix2pix_stroke/tests_auto/random'
+#old_results = np.concatenate([np.load('%s/default_random_0_caffe_%04d_%04d_psnrs.npy'%(LOAD_DIR,a,a+100)) for a in range(0,1000,100)])
+#old_mean = np.mean(old_results, axis=0)
+#old_std = np.std(old_results, axis=0)/np.sqrt(old_results.shape[0])
 
 import matplotlib.pyplot as plt
 plt.close('all')
-for (old_psnr,oo) in old_psnrs:
-    plt.plot(num_points,old_psnr,'k-',label=oo)
-    plt.plot([num_points[0],num_points[-1]],[old_psnr[0],old_psnr[0]],'k-',label='%s (auto)'%oo)
+#for (old_psnr,oo) in old_psnrs:
+#    plt.plot(num_points,old_psnr,'k-',label=oo)
+#    plt.plot([num_points[0],num_points[-1]],[old_psnr[0],old_psnr[0]],'k-',label='%s (auto)'%oo)
 
 plt.plot(num_points,psnrs_mean,'bo-',label='new')
 plt.plot(num_points,psnrs_mean+psnrs_std,'b--')
 plt.plot(num_points,psnrs_mean-psnrs_std,'b--')
 plt.plot([num_points[0],num_points[-1]],[psnrs_mean[0],psnrs_mean[0]],'b-',label='new (auto)')
-plt.plot(num_points,old_mean,'ro-',label='siggraph17')
-plt.plot(num_points,old_mean+old_std,'r--')
-plt.plot(num_points,old_mean-old_std,'r--')
-plt.plot([num_points[0],num_points[-1]],[old_mean[0],old_mean[0]],'r-',label='siggraph17 (auto)')
+#plt.plot(num_points,old_mean,'ro-',label='siggraph17')
+#plt.plot(num_points,old_mean+old_std,'r--')
+#plt.plot(num_points,old_mean-old_std,'r--')
+#plt.plot([num_points[0],num_points[-1]],[old_mean[0],old_mean[0]],'r-',label='siggraph17 (auto)')
 plt.xlabel('Number of points')
 plt.ylabel('PSNR [db]')
 plt.legend(loc=0)
@@ -118,4 +128,4 @@ plt.xscale('log')
 plt.xlim((num_points[0],num_points[-1]))
 plt.savefig('tmp.png')
 
-embed()
+# embed()

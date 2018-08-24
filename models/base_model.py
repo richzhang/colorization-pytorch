@@ -32,7 +32,7 @@ class BaseModel():
         if self.isTrain:
             self.schedulers = [networks.get_scheduler(optimizer, opt) for optimizer in self.optimizers]
 
-        if not self.isTrain or opt.continue_train:
+        if not self.isTrain or opt.load_model:
             self.load_networks(opt.which_epoch)
         self.print_networks(opt.verbose)
 
@@ -45,9 +45,11 @@ class BaseModel():
 
     # used in test time, wrapping `forward` in no_grad() so we don't save
     # intermediate steps for backprop
-    def test(self):
+    def test(self,compute_losses=False):
         with torch.no_grad():
             self.forward()
+            if(compute_losses):
+                self.compute_losses_G()
 
     # get image paths
     def get_image_paths(self):
