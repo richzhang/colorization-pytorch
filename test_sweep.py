@@ -22,6 +22,7 @@ import datetime as dt
 
 if __name__ == '__main__':
     # embed()
+
     # opt = TestOptions().parse()
     opt = TrainOptions().parse()
     opt.nThreads = 1   # test code only supports nThreads = 1
@@ -83,6 +84,7 @@ if __name__ == '__main__':
 
 psnrs_mean = np.mean(psnrs, axis=0)
 psnrs_std = np.std(psnrs, axis=0)/np.sqrt(opt.how_many)
+
 np.save('psnrs_mean_%s'%str_now,psnrs_mean)
 np.save('psnrs_std_%s'%str_now,psnrs_std)
 np.save('psnrs_%s'%str_now,psnrs)
@@ -107,25 +109,29 @@ print(', ').join(['%.2f'%psnr for psnr in psnrs_mean])
 #old_mean = np.mean(old_results, axis=0)
 #old_std = np.std(old_results, axis=0)/np.sqrt(old_results.shape[0])
 
+num_points_hack = 1.*num_points
+num_points_hack[0] = .4
+
 import matplotlib.pyplot as plt
 plt.close('all')
-#for (old_psnr,oo) in old_psnrs:
-#    plt.plot(num_points,old_psnr,'k-',label=oo)
-#    plt.plot([num_points[0],num_points[-1]],[old_psnr[0],old_psnr[0]],'k-',label='%s (auto)'%oo)
+for (old_psnr,oo) in old_psnrs:
+    plt.plot(num_points_hack,old_psnr,'k-',label=oo)
+    # plt.plot([num_points_hack[0],num_points_hack[-1]],[old_psnr[0],old_psnr[0]],'k-',label='%s (auto)'%oo)
 
-plt.plot(num_points,psnrs_mean,'bo-',label='new')
-plt.plot(num_points,psnrs_mean+psnrs_std,'b--')
-plt.plot(num_points,psnrs_mean-psnrs_std,'b--')
-plt.plot([num_points[0],num_points[-1]],[psnrs_mean[0],psnrs_mean[0]],'b-',label='new (auto)')
-#plt.plot(num_points,old_mean,'ro-',label='siggraph17')
-#plt.plot(num_points,old_mean+old_std,'r--')
-#plt.plot(num_points,old_mean-old_std,'r--')
-#plt.plot([num_points[0],num_points[-1]],[old_mean[0],old_mean[0]],'r-',label='siggraph17 (auto)')
+plt.plot(num_points_hack,psnrs_mean,'bo-',label='new')
+plt.plot(num_points_hack,psnrs_mean+psnrs_std,'b--')
+plt.plot(num_points_hack,psnrs_mean-psnrs_std,'b--')
+# plt.plot([num_points_hack[0],num_points_hack[-1]],[psnrs_mean[0],psnrs_mean[0]],'b-',label='new (auto)')
+plt.plot(num_points_hack,old_mean,'ro-',label='siggraph17')
+plt.plot(num_points_hack,old_mean+old_std,'r--')
+plt.plot(num_points_hack,old_mean-old_std,'r--')
+# plt.plot([num_points_hack[0],num_points_hack[-1]],[old_mean[0],old_mean[0]],'r-',label='siggraph17 (auto)')
+
 plt.xlabel('Number of points')
 plt.ylabel('PSNR [db]')
 plt.legend(loc=0)
 plt.xscale('log')
-plt.xlim((num_points[0],num_points[-1]))
+plt.xlim((num_points_hack[0],num_points_hack[-1]))
 plt.savefig('tmp.png')
 
 # embed()
