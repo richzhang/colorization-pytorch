@@ -19,8 +19,16 @@ if __name__ == '__main__':
 
     dataset = torchvision.datasets.ImageFolder(opt.dataroot, 
         transform=transforms.Compose([
-            transforms.Resize((opt.loadSize,opt.loadSize)),
+            transforms.RandomChoice([transforms.Resize(opt.loadSize,interpolation=1),
+                transforms.Resize(opt.loadSize,interpolation=2),
+                transforms.Resize(opt.loadSize,interpolation=3),
+                transforms.Resize((opt.loadSize,opt.loadSize),interpolation=1),
+                transforms.Resize((opt.loadSize,opt.loadSize),interpolation=2),
+                transforms.Resize((opt.loadSize,opt.loadSize),interpolation=3)]),
             transforms.RandomResizedCrop(opt.fineSize),
+            transforms.RandomChoice([transforms.ColorJitter(brightness=.1,contrast=.1,saturation=.1,hue=.1),
+                transforms.ColorJitter(brightness=0,contrast=0,saturation=.1,hue=.2),
+                transforms.ColorJitter(brightness=0,contrast=0,saturation=0,hue=0),]),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor()]))
     dataset_loader = torch.utils.data.DataLoader(dataset,batch_size=opt.batchSize, shuffle=True)
