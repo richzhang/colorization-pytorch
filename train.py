@@ -27,7 +27,7 @@ if __name__ == '__main__':
                 transforms.Resize((opt.loadSize,opt.loadSize),interpolation=3)]),
             transforms.RandomResizedCrop(opt.fineSize),
             transforms.RandomChoice([transforms.ColorJitter(brightness=.1,contrast=.1,saturation=.1,hue=.1),
-                transforms.ColorJitter(brightness=0,contrast=0,saturation=.1,hue=.2),
+                transforms.ColorJitter(brightness=0,contrast=0,saturation=.05,hue=.2),
                 transforms.ColorJitter(brightness=0,contrast=0,saturation=0,hue=0),]),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor()]))
