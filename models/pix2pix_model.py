@@ -42,13 +42,8 @@ class Pix2PixModel(BaseModel):
             self.model_names = ['G']
         
         # load/define networks
-        if(self.opt.classification):
-            A = int(2*self.opt.ab_max/self.opt.ab_quant + 1)
-            num_out = A**2
-        else:
-            num_out = opt.output_nc
         num_in = opt.input_nc + opt.output_nc + 1
-        self.netG = networks.define_G(num_in, num_out, opt.ngf,
+        self.netG = networks.define_G(num_in, opt.output_nc, opt.ngf,
                                       opt.which_model_netG, opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids, 
                                       use_tanh=True, classification=opt.classification)
 
@@ -134,7 +129,7 @@ class Pix2PixModel(BaseModel):
 
         self.loss_D.backward()
 
-    def backward_G(self):
+    def compute_losses_G(self):
         mask_avg = torch.mean(self.mask_B_nc) + .000001
 
         self.loss_0 = 0 # 0 for plot
@@ -168,6 +163,8 @@ class Pix2PixModel(BaseModel):
             self.loss_G = self.loss_G_CE*self.opt.lambda_A + self.loss_G_L1_reg
             # self.loss_G = self.loss_G_Huber*self.opt.lambda_A
 
+    def backward_G(self):
+        self.compute_losses_G()
         self.loss_G.backward()
 
     def optimize_parameters(self):
