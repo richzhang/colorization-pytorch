@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
 psnrs_mean = np.mean(psnrs, axis=0)
 psnrs_std = np.std(psnrs, axis=0)/np.sqrt(opt.how_many)
-np.save('psnrs_mean_08_22_1700',psnrs_mean)
+np.save('psnrs_mean_08_24_2200',psnrs_mean)
 print(', ').join(['%.2f'%psnr for psnr in psnrs_mean])
 
 old_psnrs = [[np.load('psnrs_mean_08_19_2000.npy'),'08_19_2000'],
