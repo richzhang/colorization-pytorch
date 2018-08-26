@@ -104,12 +104,14 @@ print(', ').join(['%.2f'%psnr for psnr in psnrs_mean])
 # old_psnrs = [[np.load('psnrs_mean_08_19_2000.npy'),'08_19_2000'],
 #     [np.load('psnrs_mean_08_20_0000.npy'),'08_20_0000']]
 
-embed()
+# embed()
 
-LOAD_DIR = '/data/big/rzhang/src/pix2pix_stroke/tests_auto/random'
-old_results = np.concatenate([np.load('%s/default_random_0_caffe_%04d_%04d_psnrs.npy'%(LOAD_DIR,a,a+100)) for a in range(0,1000,100)])
+# LOAD_DIR = '/data/big/rzhang/src/pix2pix_stroke/tests_auto/random'
+# old_results = np.concatenate([np.load('%s/default_random_0_caffe_%04d_%04d_psnrs.npy'%(LOAD_DIR,a,a+100)) for a in range(0,1000,100)])
+old_results = np.load('./psnrs_siggraph.npy')
 old_mean = np.mean(old_results, axis=0)
 old_std = np.std(old_results, axis=0)/np.sqrt(old_results.shape[0])
+print(', ').join(['%.2f'%psnr for psnr in old_mean])
 
 num_points_hack = 1.*num_points
 num_points_hack[0] = .4
