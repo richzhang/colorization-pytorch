@@ -17,6 +17,7 @@ from util import util
 from IPython import embed
 import numpy as np
 import progressbar as pb
+import shutil
 
 import datetime as dt
 
@@ -53,8 +54,7 @@ if __name__ == '__main__':
     time = dt.datetime.now()
     str_now = '%02d_%02d_%02d%02d'%(time.month,time.day,time.hour,time.minute)
     
-    import shutil
-    shutil.copyfile('./checkpoints/siggraph_reg/latest_net_G.pth','./checkpoints/siggraph_reg/%s.pth'%str_now)
+    shutil.copyfile('./checkpoints/%s/latest_net_G.pth'%opt.name,'./checkpoints/%s/%s.pth'%(opt.name,str_now))
 
     psnrs = np.zeros((opt.how_many,N))
 
@@ -104,18 +104,20 @@ print(', ').join(['%.2f'%psnr for psnr in psnrs_mean])
 # old_psnrs = [[np.load('psnrs_mean_08_19_2000.npy'),'08_19_2000'],
 #     [np.load('psnrs_mean_08_20_0000.npy'),'08_20_0000']]
 
-#LOAD_DIR = '/data/big/rzhang/src/pix2pix_stroke/tests_auto/random'
-#old_results = np.concatenate([np.load('%s/default_random_0_caffe_%04d_%04d_psnrs.npy'%(LOAD_DIR,a,a+100)) for a in range(0,1000,100)])
-#old_mean = np.mean(old_results, axis=0)
-#old_std = np.std(old_results, axis=0)/np.sqrt(old_results.shape[0])
+embed()
+
+LOAD_DIR = '/data/big/rzhang/src/pix2pix_stroke/tests_auto/random'
+old_results = np.concatenate([np.load('%s/default_random_0_caffe_%04d_%04d_psnrs.npy'%(LOAD_DIR,a,a+100)) for a in range(0,1000,100)])
+old_mean = np.mean(old_results, axis=0)
+old_std = np.std(old_results, axis=0)/np.sqrt(old_results.shape[0])
 
 num_points_hack = 1.*num_points
 num_points_hack[0] = .4
 
 import matplotlib.pyplot as plt
-plt.close('all')
-for (old_psnr,oo) in old_psnrs:
-    plt.plot(num_points_hack,old_psnr,'k-',label=oo)
+# plt.close('all')
+# for (old_psnr,oo) in old_psnrs:
+    # plt.plot(num_points_hack,old_psnr,'k-',label=oo)
     # plt.plot([num_points_hack[0],num_points_hack[-1]],[old_psnr[0],old_psnr[0]],'k-',label='%s (auto)'%oo)
 
 plt.plot(num_points_hack,psnrs_mean,'bo-',label='new')

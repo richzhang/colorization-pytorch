@@ -11,7 +11,7 @@ class BaseOptions():
 
     def initialize(self):
         self.parser.add_argument('--dataroot', type=str, default='/data/big/dataset/ILSVRC2012/train', help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
-        self.parser.add_argument('--batchSize', type=int, default=20, help='input batch size')
+        self.parser.add_argument('--batchSize', type=int, default=25, help='input batch size')
         self.parser.add_argument('--loadSize', type=int, default=256, help='scale images to this size')
         self.parser.add_argument('--fineSize', type=int, default=176, help='then crop to this size')
         self.parser.add_argument('--input_nc', type=int, default=1, help='# of input image channels')

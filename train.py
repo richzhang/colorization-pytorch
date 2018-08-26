@@ -27,11 +27,11 @@ if __name__ == '__main__':
                 transforms.Resize((opt.loadSize,opt.loadSize),interpolation=3)]),
             transforms.RandomResizedCrop(opt.fineSize),
             transforms.RandomChoice([transforms.ColorJitter(brightness=.05,contrast=.05,saturation=.05,hue=.05),
+                transforms.ColorJitter(brightness=0,contrast=0,saturation=.05,hue=.1),
                 transforms.ColorJitter(brightness=0,contrast=0,saturation=0,hue=0),]),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor()]))
     dataset_loader = torch.utils.data.DataLoader(dataset,batch_size=opt.batchSize, shuffle=True)
-                # transforms.ColorJitter(brightness=0,contrast=0,saturation=.05,hue=.2),
 
     # data_loader = CreateDataLoader(opt)
     # dataset = data_loader.load_data()
