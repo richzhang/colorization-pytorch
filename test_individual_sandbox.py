@@ -26,16 +26,16 @@ embed()
 
 opt = TrainOptions().parse()
 opt.nThreads = 1   # test code only supports nThreads = 1
-opt.batchSize = 1  # test code only supports batchSize = 1
+opt.batch_size = 1  # test code only supports batch_size = 1
 opt.display_id = -1  # no visdom display
 opt.dataroot = './dataset/ilsvrc2012/val/'
 opt.loadSize = 256
 opt.how_many = 1000
 opt.aspect_ratio = 1.0
-opt.sample_Ps = [6,]
+opt.sample_Ps = [6, ]
 
 opt.nThreads = 1   # test code only supports nThreads = 1
-opt.batchSize = 1  # test code only supports batchSize = 1
+opt.batch_size = 1  # test code only supports batch_size = 1
 opt.serial_batches = True  # no shuffle
 opt.no_flip = True  # no flip
 opt.display_id = -1  # no visdom display
@@ -69,28 +69,28 @@ model = create_model(opt)
 model.setup(opt)
 model.eval()
 
-img = cv2.imread('%s/val/ILSVRC2012_val_00000168.JPEG'%opt.dataroot)[:,:,::-1]
+img = cv2.imread('%s/val/ILSVRC2012_val_00000168.JPEG' % opt.dataroot)[:, :, ::-1]
 # zoom_factor0 = 256./img.shape[0]
 # zoom_factor1 = 256./img.shape[1]
 # img = zoom(img,[zoom_factor0, zoom_factor1, 1], order=1)
-img = scipy.misc.imresize(img, (256, 256))/255.
+img = scipy.misc.imresize(img, (256, 256)) / 255.
 # img = img[::2,::2,:]
-data_raw = [util.crop_mult(torch.Tensor(img.transpose((2,0,1)))[None,:,:,:]),]
-data_raw[0] = util.crop_mult(data_raw[0],mult=8).cuda()
+data_raw = [util.crop_mult(torch.Tensor(img.transpose((2, 0, 1)))[None, :, :, :]), ]
+data_raw[0] = util.crop_mult(data_raw[0], mult=8).cuda()
 
 data_raw[0] = data_raw[0]
 # data_raw[0] = util.crop_mult(data_raw[0], mult=8)
 data = util.get_colorization_data(data_raw, opt, ab_thresh=0., p=1.)
-data['hint_B'],data['mask_B'] = util.add_color_patch(data['hint_B'],data['mask_B'],opt,ab=[60,0],P=5,hw=[136,164])
-data['hint_B'],data['mask_B'] = util.add_color_patch(data['hint_B'],data['mask_B'],opt,ab=[60,0],P=5,hw=[170,164])
-data['hint_B'],data['mask_B'] = util.add_color_patch(data['hint_B'],data['mask_B'],opt,ab=[60,0],P=5,hw=[196,164])
+data['hint_B'], data['mask_B'] = util.add_color_patch(data['hint_B'], data['mask_B'], opt, ab=[60, 0], P=5, hw=[136, 164])
+data['hint_B'], data['mask_B'] = util.add_color_patch(data['hint_B'], data['mask_B'], opt, ab=[60, 0], P=5, hw=[170, 164])
+data['hint_B'], data['mask_B'] = util.add_color_patch(data['hint_B'], data['mask_B'], opt, ab=[60, 0], P=5, hw=[196, 164])
 
 model.set_input(data)
 model.test()
 visuals = model.get_current_visuals()
 
 for key in visuals.keys():
-    cv2.imwrite('cup_%s.png'%key, util.tensor2im(visuals[key])[:,:,::-1])
+    cv2.imwrite('cup_%s.png' % key, util.tensor2im(visuals[key])[:, :, ::-1])
 
 
 # import numpy as np
@@ -107,4 +107,3 @@ for key in visuals.keys():
 #     for b in range(8):
 #         mont[4*a:4*a+3, 4*b:4*b+3, :] = (weights_l[:,:,a,b]-np.mean(weights_l[:,:,a,b]))/np.std(weights_l[:,:,a,b])
 # plt.imsave('weights.png',mont)
-

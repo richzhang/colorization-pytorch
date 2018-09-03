@@ -8,6 +8,10 @@ class iColorModel(BaseModel):
     def name(self):
         return 'iColorModel'
 
+    @staticmethod
+    def modify_commandline_options(parser, is_train=True):
+        return parser
+
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
         self.isTrain = opt.isTrain
@@ -80,7 +84,7 @@ class iColorModel(BaseModel):
         # Second, G(A) = B
         self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B)
 
-        self.loss_G = self.loss_G_GAN*self.opt.lambda_GAN + self.loss_G_L1*self.opt.lambda_A
+        self.loss_G = self.loss_G_GAN * self.opt.lambda_GAN + self.loss_G_L1 * self.opt.lambda_A
 
         self.loss_G.backward()
 

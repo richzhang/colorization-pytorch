@@ -4,6 +4,7 @@ from collections import OrderedDict
 from . import networks
 from IPython import embed
 
+
 class BaseModel():
     def name(self):
         return 'BaseModel'
@@ -47,7 +48,7 @@ class BaseModel():
 
     # used in test time, wrapping `forward` in no_grad() so we don't save
     # intermediate steps for backprop
-    def test(self,compute_losses=False):
+    def test(self, compute_losses=False):
         with torch.no_grad():
             self.forward()
             if(compute_losses):
