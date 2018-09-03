@@ -85,6 +85,3 @@ if __name__ == '__main__':
 
     for (pp, sample_p) in enumerate(sample_ps):
         print('p=%.3f: %.2f+/-%.2f' % (sample_p, psnrs_mean[pp], psnrs_std[pp]))
-
-    for (pp, sample_p) in enumerate(sample_ps):
-        print('p=%.3f: %.2f+/-%.2f' % (sample_p, entrs_mean[pp], entrs_std[pp]))

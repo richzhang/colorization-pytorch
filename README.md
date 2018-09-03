@@ -1,6 +1,6 @@
 # Interactive Deep Colorization in PyTorch
 
-This is our PyTorch reimplementation for interactive image colorization. The code was written by [Richard Zhang](https://github.com/richzhang) and [Jun-Yan Zhu](https://github.com/junyanz).
+This is our PyTorch reimplementation for interactive image colorization. The code was written by [Richard Zhang](https://github.com/richzhang) and [Jun-Yan Zhu](https://github.com/junyanz). The original GitHub repo (in Caffe) is [here](https://richzhang.github.io/ideepcolor/).
 
 Original GitHub repo is [here](https://richzhang.github.io/ideepcolor/).
 
@@ -33,20 +33,28 @@ cd colorization-pytorch
 ### Testing interactive colorization
 - Test the model on validation data:
 ```bash
-python test.py --name siggraph_reg --phase val --load_model
+python test.py --name siggraph_pretrained --phase val --load_model
 ```
-The test results will be saved to a html file here: `./results/siggraph_reg/latest_val/index.html`.
+The test results will be saved to a html file here: `./results/siggraph_reg/latest_val/index.html`. This will test (1) automatic colorization, (2) colorization with some random hints, and (3) colorization wit lots of random hints.
 
 - Test the model by making PSNR vs number of hints plot:
 ```bash
-python test_sweep.py --name siggraph_reg 
+python test_sweep.py --name siggraph_reg
 ```
 
-- Test the model 
 
 ## Future
 
 I hope to reimplement [Colorful Image Colorization, ECCV 2016.]() and [Split-Brain Autoencoders, CVPR 2017.]() using this codebase as well.
+=======
+- Test the model with GUI.
+
+Original [GitHub repo](https://github.com/junyanz/interactive-deep-colorization). Checkout the `pytorch` branch.
+
+## Future
+
+I hope to reimplement [Colorful Image Colorization, ECCV 2016.](https://github.com/richzhang/colorization) and [Split-Brain Autoencoders, CVPR 2017.](https://github.com/richzhang/splitbrainauto) using this codebase as well.
+>>>>>>> 015c9ebd65be19cbdda0360df58b04f9375b04a9
 
 ## Acknowledgments
 This code borrows from the [pytorch-CycleGAN](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) repository.
