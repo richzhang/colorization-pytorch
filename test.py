@@ -31,9 +31,11 @@ if __name__ == '__main__':
     opt.nThreads = 1   # test code only supports nThreads = 1
     opt.batchSize = 1  # test code only supports batchSize = 1
     opt.display_id = -1  # no visdom display
+    opt.phase = 'val'
     opt.dataroot = './dataset/ilsvrc2012/%s/'%opt.phase
     opt.serial_batches = True
     opt.aspect_ratio = 1.
+    opt.load_model = True
 
     dataset = torchvision.datasets.ImageFolder(opt.dataroot, 
         transform=transforms.Compose([

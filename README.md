@@ -35,14 +35,20 @@ cd colorization-pytorch
 - Train a model:
 ```bash ./scripts/train_siggraph.sh```
 
+This is a 2 stage training process. First, the network is trained for automatic colorization using classification loss for 15 epochs. Results are in `./checkpoints/siggraph_class`. Then, the network is fine-tuned for interactive colorization using regression loss for 10 epochs. Final results are in `./checkpoints/siggraph_reg`.
+
 - To view training results and loss plots, run `python -m visdom.server` and click the URL http://localhost:8097.`
 
-- Test the model:
+- Test the model on validation data:
 ```bash
-#!./scripts/test_cyclegan.sh
-python test.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan --phase test --no_dropout
+python test.py --name siggraph_reg --phase val --load_model
 ```
-The test results will be saved to a html file here: `./results/maps_cyclegan/latest_test/index.html`.
+The test results will be saved to a html file here: `./results/siggraph_reg/latest_val/index.html`.
+
+- Test the model by making PSNR vs number of hints plot:
+```bash
+python test_sweep.py --name siggraph_reg 
+```
 
 ## Acknowledgments
 This code borrows from the [pytorch-CycleGAN](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) repository.
