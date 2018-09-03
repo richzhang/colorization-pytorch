@@ -30,8 +30,6 @@ if __name__ == '__main__':
                                                    transforms.ToTensor()]))
     dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
 
-    # data_loader = CreateDataLoader(opt)
-    # dataset = data_loader.load_data()
     dataset_size = len(dataset)
     print('#training images = %d' % dataset_size)
 
