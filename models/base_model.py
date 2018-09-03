@@ -2,10 +2,16 @@ import os
 import torch
 from collections import OrderedDict
 from . import networks
-from IPython import embed
 
 
 class BaseModel():
+
+    # modify parser to add command line options,
+    # and also change the default values if needed
+    @staticmethod
+    def modify_commandline_options(parser, is_train):
+        return parser
+
     def name(self):
         return 'BaseModel'
 
@@ -21,7 +27,6 @@ class BaseModel():
         self.model_names = []
         self.visual_names = []
         self.image_paths = []
-        self.half = opt.half
 
     def set_input(self, input):
         self.input = input
@@ -29,14 +34,13 @@ class BaseModel():
     def forward(self):
         pass
 
-    # load and print networks; create shedulars
-    def setup(self, opt):
+    # load and print networks; create schedulers
+    def setup(self, opt, parser=None):
         if self.isTrain:
             self.schedulers = [networks.get_scheduler(optimizer, opt) for optimizer in self.optimizers]
 
-        if not self.isTrain or opt.load_model:
+        if not self.isTrain or opt.continue_train:
             self.load_networks(opt.which_epoch)
-
         self.print_networks(opt.verbose)
 
     # make models eval mode during test time
@@ -48,11 +52,9 @@ class BaseModel():
 
     # used in test time, wrapping `forward` in no_grad() so we don't save
     # intermediate steps for backprop
-    def test(self, compute_losses=False):
+    def test(self):
         with torch.no_grad():
             self.forward()
-            if(compute_losses):
-                self.compute_losses_G()
 
     # get image paths
     def get_image_paths(self):
@@ -76,14 +78,13 @@ class BaseModel():
                 visual_ret[name] = getattr(self, name)
         return visual_ret
 
-    # return training losses/errors. train.py will print out these errors as debugging information
+    # return traning losses/errors. train.py will print out these errors as debugging information
     def get_current_losses(self):
         errors_ret = OrderedDict()
         for name in self.loss_names:
             if isinstance(name, str):
                 # float(...) works for both scalar tensor and float number
                 errors_ret[name] = float(getattr(self, 'loss_' + name))
-
         return errors_ret
 
     # save models to the disk
@@ -107,6 +108,9 @@ class BaseModel():
                     (key == 'running_mean' or key == 'running_var'):
                 if getattr(module, key) is None:
                     state_dict.pop('.'.join(keys))
+            if module.__class__.__name__.startswith('InstanceNorm') and \
+               (key == 'num_batches_tracked'):
+                state_dict.pop('.'.join(keys))
         else:
             self.__patch_instance_norm_state_dict(state_dict, getattr(module, key), keys, i + 1)
 
@@ -123,19 +127,12 @@ class BaseModel():
                 # if you are using PyTorch newer than 0.4 (e.g., built from
                 # GitHub source), you can remove str() on self.device
                 state_dict = torch.load(load_path, map_location=str(self.device))
+                if hasattr(state_dict, '_metadata'):
+                    del state_dict._metadata
+
                 # patch InstanceNorm checkpoints prior to 0.4
                 for key in list(state_dict.keys()):  # need to copy keys here because we mutate in loop
                     self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
-
-                # print('popping bad weights')
-                # state_dict.pop('model9up.0.weight')
-                # state_dict.pop('model9up.0.bias')
-                # state_dict.pop('model10up.0.weight')
-                # state_dict.pop('model10up.0.bias')
-                # params = net.state_dict()
-                # params.update(state_dict)
-                # net.load_state_dict(params)
-
                 net.load_state_dict(state_dict)
 
     # print network information
