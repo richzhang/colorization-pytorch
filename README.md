@@ -11,14 +11,7 @@ This is our PyTorch reimplementation for interactive image colorization. The cod
 
 ## Getting Started
 ### Installation
-- Install PyTorch 0.4 and dependencies from http://pytorch.org
-
-- Install python libraries [visdom](https://github.com/facebookresearch/visdom) and [dominate](https://github.com/Knio/dominate).
-```bash
-pip install visdom
-pip install dominate
-```
-- Alternatively, all dependencies can be installed by
+- Install PyTorch 0.4+ and torchvision from http://pytorch.org and other dependencies (e.g., [visdom](https://github.com/facebookresearch/visdom) and [dominate](https://github.com/Knio/dominate)). You can install all the dependencies by
 ```bash
 pip install -r requirements.txt
 ```
