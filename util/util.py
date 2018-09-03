@@ -159,8 +159,7 @@ def lab2xyz(lab):
     out = (out**3.)*mask + (out - 16./116.)/7.787*(1-mask)
 
     sc = torch.Tensor((0.95047, 1., 1.08883))[None,:,None,None]
-    if(out.is_cuda):
-        sc = sc.cuda()
+    sc = sc.to(out.device)
 
     out = out*sc
 
@@ -325,12 +324,11 @@ def decode_mean(data_ab_quant, opt):
     #   data_ab_inf     Nx2xHxW \in [-1,1]
 
     (N,Q,H,W) = data_ab_quant.shape
-    a_range = torch.range(-opt.ab_max, opt.ab_max, step=opt.ab_quant)[None,:,None,None]
-    if(data_ab_quant.is_cuda):
-        a_range = a_range.cuda()
+    a_range = torch.range(-opt.ab_max, opt.ab_max, step=opt.ab_quant).to(data_ab_quant.device)[None,:,None,None]
+    a_range = a_range.type(data_ab_quant.type())
 
     # reshape to AB space
-    data_ab_quant = data_ab_quant.view((N,opt.A,opt.A,H,W))
+    data_ab_quant = data_ab_quant.view((N,int(opt.A),int(opt.A),H,W))
     data_a_total = torch.sum(data_ab_quant,dim=2)
     data_b_total = torch.sum(data_ab_quant,dim=1)
 

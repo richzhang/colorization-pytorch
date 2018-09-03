@@ -60,6 +60,7 @@ class BaseOptions():
         self.parser.add_argument('--aspect_ratio', type=float, default=1.0, help='aspect ratio of result images')
 
         self.parser.add_argument('--load_model', action='store_true', help='load the latest model')
+        self.parser.add_argument('--half', action='store_true', help='half precision model')
 
         self.initialized = True
 

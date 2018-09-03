@@ -76,6 +76,15 @@ class Pix2PixModel(BaseModel):
                                                     lr=opt.lr, betas=(opt.beta1, 0.999))
                 self.optimizers.append(self.optimizer_D)
 
+        if self.half:
+            for model_name in self.model_names:
+                net = getattr(self, 'net' + model_name)
+                net.half()
+                for layer in net.modules():
+                    if(isinstance(layer,torch.nn.BatchNorm2d)):
+                        layer.float()
+                print('Net %s half precision'%model_name)
+
         # initialize average loss values
         self.avg_losses = OrderedDict()
         self.avg_loss_alpha = opt.avg_loss_alpha
@@ -89,6 +98,10 @@ class Pix2PixModel(BaseModel):
             self.avg_losses[loss_name] = 0
 
     def set_input(self, input):
+        if(self.half):
+            for key in input.keys():
+                input[key] = input[key].half()
+
         AtoB = self.opt.which_direction == 'AtoB'
         self.real_A = input['A' if AtoB else 'B'].to(self.device)
         self.real_B = input['B' if AtoB else 'A'].to(self.device)
@@ -97,7 +110,6 @@ class Pix2PixModel(BaseModel):
         self.mask_B = input['mask_B'].to(self.device)
         self.mask_B_nc = self.mask_B+self.opt.mask_cent
 
-        # if(self.opt.classification):
         self.real_B_enc = util.encode_ab_ind(self.real_B[:,:,::4,::4], self.opt)
 
     def forward(self):
@@ -105,6 +117,7 @@ class Pix2PixModel(BaseModel):
         # if(self.opt.classification):
         self.fake_B_dec_max = self.netG.module.upsample4(util.decode_max_ab(self.fake_B_class, self.opt))
         self.fake_B_distr = self.netG.module.softmax(self.fake_B_class)
+
         self.fake_B_dec_mean = self.netG.module.upsample4(util.decode_mean(self.fake_B_distr, self.opt))
 
         self.fake_B_entr = self.netG.module.upsample4(-torch.sum(self.fake_B_distr*torch.log(self.fake_B_distr+1.e-10),dim=1,keepdim=True))
@@ -130,24 +143,30 @@ class Pix2PixModel(BaseModel):
         self.loss_D.backward()
 
     def compute_losses_G(self):
-        mask_avg = torch.mean(self.mask_B_nc) + .000001
+        # embed()
+
+        mask_avg = torch.mean(self.mask_B_nc.type(torch.cuda.FloatTensor)) + .000001
 
         self.loss_0 = 0 # 0 for plot
 
         # classification statistics
-        self.loss_G_CE = self.criterionCE(self.fake_B_class, self.real_B_enc[:,0,:,:].type(torch.cuda.LongTensor) ) #cross-entropy loss
-        self.loss_G_entr = torch.mean(self.fake_B_entr) # entropy of predicted distribution
-        self.loss_G_entr_hint = torch.mean(self.fake_B_entr*self.mask_B_nc) / mask_avg # entropy of predicted distribution at hint points
+        self.loss_G_CE = self.criterionCE(self.fake_B_class.type(torch.cuda.FloatTensor),
+            self.real_B_enc[:,0,:,:].type(torch.cuda.LongTensor) ) #cross-entropy loss
+        self.loss_G_entr = torch.mean(self.fake_B_entr.type(torch.cuda.FloatTensor)) # entropy of predicted distribution
+        self.loss_G_entr_hint = torch.mean(self.fake_B_entr.type(torch.cuda.FloatTensor)*self.mask_B_nc.type(torch.cuda.FloatTensor)) / mask_avg # entropy of predicted distribution at hint points
 
         # regression statistics
-        self.loss_G_L1_max = 10*torch.mean(self.criterionL1(self.fake_B_dec_max, self.real_B))
-        self.loss_G_L1_mean = 10*torch.mean(self.criterionL1(self.fake_B_dec_mean, self.real_B))
-        self.loss_G_L1_reg = 10*torch.mean(self.criterionL1(self.fake_B_reg, self.real_B))
+        self.loss_G_L1_max = 10*torch.mean(self.criterionL1(self.fake_B_dec_max.type(torch.cuda.FloatTensor),
+            self.real_B.type(torch.cuda.FloatTensor)))
+        self.loss_G_L1_mean = 10*torch.mean(self.criterionL1(self.fake_B_dec_mean.type(torch.cuda.FloatTensor),
+            self.real_B.type(torch.cuda.FloatTensor)))
+        self.loss_G_L1_reg = 10*torch.mean(self.criterionL1(self.fake_B_reg.type(torch.cuda.FloatTensor),
+            self.real_B.type(torch.cuda.FloatTensor)))
 
         # L1 loss at given points
-        self.loss_G_fake_real = 10*torch.mean(self.criterionL1(self.fake_B_reg*self.mask_B_nc, self.real_B*self.mask_B_nc)) / mask_avg
-        self.loss_G_fake_hint = 10*torch.mean(self.criterionL1(self.fake_B_reg*self.mask_B_nc, self.hint_B*self.mask_B_nc)) / mask_avg
-        self.loss_G_real_hint = 10*torch.mean(self.criterionL1(self.real_B*self.mask_B_nc, self.hint_B*self.mask_B_nc)) / mask_avg
+        self.loss_G_fake_real = 10*torch.mean(self.criterionL1(self.fake_B_reg*self.mask_B_nc, self.real_B*self.mask_B_nc).type(torch.cuda.FloatTensor)) / mask_avg
+        self.loss_G_fake_hint = 10*torch.mean(self.criterionL1(self.fake_B_reg*self.mask_B_nc, self.hint_B*self.mask_B_nc).type(torch.cuda.FloatTensor)) / mask_avg
+        self.loss_G_real_hint = 10*torch.mean(self.criterionL1(self.real_B*self.mask_B_nc, self.hint_B*self.mask_B_nc).type(torch.cuda.FloatTensor)) / mask_avg
 
         # self.loss_G_L1 = torch.mean(self.criterionL1(self.fake_B, self.real_B))
         # self.loss_G_Huber = torch.mean(self.criterionHuber(self.fake_B, self.real_B))
@@ -188,23 +207,23 @@ class Pix2PixModel(BaseModel):
         from collections import OrderedDict
         visual_ret = OrderedDict()
 
-        visual_ret['gray'] = util.lab2rgb(torch.cat((self.real_A, torch.zeros_like(self.real_B)), dim=1), self.opt)
-        visual_ret['real'] = util.lab2rgb(torch.cat((self.real_A, self.real_B), dim=1), self.opt)
+        visual_ret['gray'] = util.lab2rgb(torch.cat((self.real_A.type(torch.cuda.FloatTensor), torch.zeros_like(self.real_B).type(torch.cuda.FloatTensor)), dim=1), self.opt)
+        visual_ret['real'] = util.lab2rgb(torch.cat((self.real_A.type(torch.cuda.FloatTensor), self.real_B.type(torch.cuda.FloatTensor)), dim=1), self.opt)
 
-        visual_ret['fake_max'] = util.lab2rgb(torch.cat((self.real_A, self.fake_B_dec_max), dim=1), self.opt)
-        visual_ret['fake_mean'] = util.lab2rgb(torch.cat((self.real_A, self.fake_B_dec_mean), dim=1), self.opt)
-        visual_ret['fake_reg'] = util.lab2rgb(torch.cat((self.real_A, self.fake_B_reg), dim=1), self.opt)
+        visual_ret['fake_max'] = util.lab2rgb(torch.cat((self.real_A.type(torch.cuda.FloatTensor), self.fake_B_dec_max.type(torch.cuda.FloatTensor)), dim=1), self.opt)
+        visual_ret['fake_mean'] = util.lab2rgb(torch.cat((self.real_A.type(torch.cuda.FloatTensor), self.fake_B_dec_mean.type(torch.cuda.FloatTensor)), dim=1), self.opt)
+        visual_ret['fake_reg'] = util.lab2rgb(torch.cat((self.real_A.type(torch.cuda.FloatTensor), self.fake_B_reg.type(torch.cuda.FloatTensor)), dim=1), self.opt)
         
-        visual_ret['hint'] = util.lab2rgb(torch.cat((self.real_A, self.hint_B), dim=1), self.opt)
+        visual_ret['hint'] = util.lab2rgb(torch.cat((self.real_A.type(torch.cuda.FloatTensor), self.hint_B.type(torch.cuda.FloatTensor)), dim=1), self.opt)
 
-        visual_ret['real_ab'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.real_B), dim=1), self.opt)
+        visual_ret['real_ab'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A.type(torch.cuda.FloatTensor)), self.real_B.type(torch.cuda.FloatTensor)), dim=1), self.opt)
 
-        visual_ret['fake_ab_max'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.fake_B_dec_max), dim=1), self.opt)
-        visual_ret['fake_ab_mean'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.fake_B_dec_mean), dim=1), self.opt)
-        visual_ret['fake_ab_reg'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.fake_B_reg), dim=1), self.opt)
+        visual_ret['fake_ab_max'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A.type(torch.cuda.FloatTensor)), self.fake_B_dec_max.type(torch.cuda.FloatTensor)), dim=1), self.opt)
+        visual_ret['fake_ab_mean'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A.type(torch.cuda.FloatTensor)), self.fake_B_dec_mean.type(torch.cuda.FloatTensor)), dim=1), self.opt)
+        visual_ret['fake_ab_reg'] = util.lab2rgb(torch.cat((torch.zeros_like(self.real_A.type(torch.cuda.FloatTensor)), self.fake_B_reg.type(torch.cuda.FloatTensor)), dim=1), self.opt)
 
-        visual_ret['mask'] = self.mask_B_nc.expand(-1,3,-1,-1)
-        visual_ret['hint_ab'] = visual_ret['mask']*util.lab2rgb(torch.cat((torch.zeros_like(self.real_A), self.hint_B), dim=1), self.opt)
+        visual_ret['mask'] = self.mask_B_nc.expand(-1,3,-1,-1).type(torch.cuda.FloatTensor)
+        visual_ret['hint_ab'] = visual_ret['mask']*util.lab2rgb(torch.cat((torch.zeros_like(self.real_A.type(torch.cuda.FloatTensor)), self.hint_B.type(torch.cuda.FloatTensor)), dim=1), self.opt)
 
         C = self.fake_B_distr.shape[1]
         # scale to [-1, 2], then clamped to [-1, 1]

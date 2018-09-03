@@ -20,6 +20,7 @@ class BaseModel():
         self.model_names = []
         self.visual_names = []
         self.image_paths = []
+        self.half = opt.half
 
     def set_input(self, input):
         self.input = input
@@ -34,6 +35,7 @@ class BaseModel():
 
         if not self.isTrain or opt.load_model:
             self.load_networks(opt.which_epoch)
+
         self.print_networks(opt.verbose)
 
     # make models eval mode during test time

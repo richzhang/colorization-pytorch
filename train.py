@@ -43,6 +43,7 @@ if __name__ == '__main__':
     model = create_model(opt)
     model.setup(opt)
     model.print_networks(True)
+
     visualizer = Visualizer(opt)
     total_steps = 0
 
