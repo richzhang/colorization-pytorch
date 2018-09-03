@@ -1,39 +1,34 @@
 import time
 from options.train_options import TrainOptions
-from data import CreateDataLoader
 from models import create_model
 from util.visualizer import Visualizer
 
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import torchvision.datasets as datasets
-import torchvision.models as models
-from torch.autograd import Variable
 
 from util import util
-from IPython import embed
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()
 
-    dataset = torchvision.datasets.ImageFolder(opt.dataroot, 
-        transform=transforms.Compose([
-            transforms.RandomChoice([transforms.Resize(opt.loadSize,interpolation=1),
-                transforms.Resize(opt.loadSize,interpolation=2),
-                transforms.Resize(opt.loadSize,interpolation=3),
-                transforms.Resize((opt.loadSize,opt.loadSize),interpolation=1),
-                transforms.Resize((opt.loadSize,opt.loadSize),interpolation=2),
-                transforms.Resize((opt.loadSize,opt.loadSize),interpolation=3)]),
-            transforms.RandomChoice([transforms.RandomResizedCrop(opt.fineSize,interpolation=1),
-                transforms.RandomResizedCrop(opt.fineSize,interpolation=2),
-                transforms.RandomResizedCrop(opt.fineSize,interpolation=3)]),
-            transforms.RandomChoice([transforms.ColorJitter(brightness=.05,contrast=.05,saturation=.05,hue=.05),
-                transforms.ColorJitter(brightness=0,contrast=0,saturation=.05,hue=.1),
-                transforms.ColorJitter(brightness=0,contrast=0,saturation=0,hue=0),]),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor()]))
-    dataset_loader = torch.utils.data.DataLoader(dataset,batch_size=opt.batchSize, shuffle=True)
+    dataset = torchvision.datasets.ImageFolder(opt.dataroot,
+                                               transform=transforms.Compose([
+                                                   transforms.RandomChoice([transforms.Resize(opt.loadSize, interpolation=1),
+                                                                            transforms.Resize(opt.loadSize, interpolation=2),
+                                                                            transforms.Resize(opt.loadSize, interpolation=3),
+                                                                            transforms.Resize((opt.loadSize, opt.loadSize), interpolation=1),
+                                                                            transforms.Resize((opt.loadSize, opt.loadSize), interpolation=2),
+                                                                            transforms.Resize((opt.loadSize, opt.loadSize), interpolation=3)]),
+                                                   transforms.RandomChoice([transforms.RandomResizedCrop(opt.fineSize, interpolation=1),
+                                                                            transforms.RandomResizedCrop(opt.fineSize, interpolation=2),
+                                                                            transforms.RandomResizedCrop(opt.fineSize, interpolation=3)]),
+                                                   transforms.RandomChoice([transforms.ColorJitter(brightness=.05, contrast=.05, saturation=.05, hue=.05),
+                                                                            transforms.ColorJitter(brightness=0, contrast=0, saturation=.05, hue=.1),
+                                                                            transforms.ColorJitter(brightness=0, contrast=0, saturation=0, hue=0), ]),
+                                                   transforms.RandomHorizontalFlip(),
+                                                   transforms.ToTensor()]))
+    dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
 
     # data_loader = CreateDataLoader(opt)
     # dataset = data_loader.load_data()
@@ -64,8 +59,8 @@ if __name__ == '__main__':
                 # time to load data
                 t_data = iter_start_time - iter_data_time
             visualizer.reset()
-            total_steps += opt.batchSize
-            epoch_iter += opt.batchSize
+            total_steps += opt.batch_size
+            epoch_iter += opt.batch_size
             model.set_input(data)
             model.optimize_parameters()
 
@@ -76,7 +71,7 @@ if __name__ == '__main__':
             if total_steps % opt.print_freq == 0:
                 losses = model.get_current_losses()
                 # time to do forward&backward
-                # t = (time.time() - iter_start_time) / opt.batchSize
+                # t = (time.time() - iter_start_time) / opt.batch_size
                 t = time.time() - iter_start_time
                 visualizer.print_current_losses(epoch, epoch_iter, losses, t, t_data)
                 if opt.display_id > 0:
