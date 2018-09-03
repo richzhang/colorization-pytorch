@@ -29,16 +29,13 @@ cd colorization-pytorch
 - To view training results and loss plots, run `python -m visdom.server` and click the URL http://localhost:8097.`
 
 ### Testing interactive colorization
-- Test the model on validation data:
-```bash
-python test.py --name siggraph_pretrained --phase val --load_model
-```
-The test results will be saved to a html file here: `./results/siggraph_reg/latest_val/index.html`. This will test (1) automatic colorization, (2) colorization with some random hints, and (3) colorization wit lots of random hints.
+- Either (1) train a model (as described in the section above), which will train a model in `./checkpoints/siggraph_reg/latest_net_G.pth` or (2) download the pretrained model by running ```bash pretrained_models/download_siggraph_model.sh```, which will give you a model in `./checkpoints/siggraph_pretrained/latest_net_G.pth`.
 
-- Test the model by making PSNR vs number of hints plot:
-```bash
-python test_sweep.py --name siggraph_reg 
-```
+- Test the model on validation data: ```bash python test.py --name [[NAME]] ```, where ``[[NAME]]`` is `siggraph_reg` or `siggraph_pretrained`.
+
+The test results will be saved to a html file here: `./results/siggraph_reg/latest_val/index.html`. This will test (1) automatic colorization, (2) colorization with some random hints, and (3) colorization with lots of random hints.
+
+- Test the model by making PSNR vs number of hints plot: ```bash python test_sweep.py --name siggraph_reg ```. This plot was used in Figure 6 of the [paper](https://arxiv.org/abs/1705.02999).
 
 - Test the model with GUI.
 

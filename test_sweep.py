@@ -26,6 +26,7 @@ if __name__ == '__main__':
 
     # opt = TestOptions().parse()
     opt = TrainOptions().parse()
+    opt.load_model = True
     opt.nThreads = 1   # test code only supports nThreads = 1
     opt.batchSize = 1  # test code only supports batchSize = 1
     opt.display_id = -1  # no visdom display
@@ -35,7 +36,6 @@ if __name__ == '__main__':
     opt.how_many = 1000
     opt.aspect_ratio = 1.0
     opt.sample_Ps = [6,]
-    opt.load_model = True
 
     # num_points = np.round(10**np.arange(-.4,3.1,.4))
     num_points = np.round(10**np.arange(-.1,2.8,.1))

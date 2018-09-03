@@ -35,7 +35,6 @@ if __name__ == '__main__':
     opt.dataroot = './dataset/ilsvrc2012/%s/'%opt.phase
     opt.serial_batches = True
     opt.aspect_ratio = 1.
-    opt.load_model = True
 
     dataset = torchvision.datasets.ImageFolder(opt.dataroot, 
         transform=transforms.Compose([
