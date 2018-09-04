@@ -21,9 +21,6 @@ import shutil
 import datetime as dt
 
 if __name__ == '__main__':
-    # embed()
-
-    # opt = TestOptions().parse()
     opt = TrainOptions().parse()
     opt.load_model = True
     opt.nThreads = 1   # test code only supports nThreads = 1
@@ -56,7 +53,7 @@ if __name__ == '__main__':
     time = dt.datetime.now()
     str_now = '%02d_%02d_%02d%02d' % (time.month, time.day, time.hour, time.minute)
 
-    shutil.copyfile('./checkpoints/%s/latest_net_G.pth' % opt.name, './checkpoints/%s/%s.pth' % (opt.name, str_now))
+    shutil.copyfile('./checkpoints/%s/latest_net_G.pth' % opt.name, './checkpoints/%s/%s_net_G.pth' % (opt.name, str_now))
 
     psnrs = np.zeros((opt.how_many, N))
 
@@ -75,9 +72,6 @@ if __name__ == '__main__':
 
             psnrs[i, nn] = util.calculate_psnr_np(util.tensor2im(visuals['real']), util.tensor2im(visuals['fake_reg']))
 
-        # if i % 5 == 0:
-            # print('processing (%04d)-th image...'%i)
-
         if i == opt.how_many - 1:
             break
 
@@ -87,9 +81,9 @@ if __name__ == '__main__':
     psnrs_mean = np.mean(psnrs, axis=0)
     psnrs_std = np.std(psnrs, axis=0) / np.sqrt(opt.how_many)
 
-    np.save('./checkpoints/%s/psnrs_mean_%s' % str_now, psnrs_mean)
-    np.save('./checkpoints/%s/psnrs_std_%s' % str_now, psnrs_std)
-    np.save('./checkpoints/%s/psnrs_%s' % str_now, psnrs)
+    np.save('./checkpoints/%s/psnrs_mean_%s' % (opt.name,str_now), psnrs_mean)
+    np.save('./checkpoints/%s/psnrs_std_%s' % (opt.name,str_now), psnrs_std)
+    np.save('./checkpoints/%s/psnrs_%s' % (opt.name,str_now), psnrs)
     print(', ').join(['%.2f' % psnr for psnr in psnrs_mean])
 
     old_results = np.load('./resources/psnrs_siggraph.npy')
@@ -114,4 +108,4 @@ if __name__ == '__main__':
     plt.legend(loc=0)
     plt.xscale('log')
     plt.xlim((num_points_hack[0], num_points_hack[-1]))
-    plt.savefig('sweep_%s.png' % str_now)
+    plt.savefig('./checkpoints/%s/sweep_%s.png' % (opt.name,str_now))

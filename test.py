@@ -1,6 +1,5 @@
 
 import os
-from options.test_options import TestOptions
 from options.train_options import TrainOptions
 from models import create_model
 from util.visualizer import save_images

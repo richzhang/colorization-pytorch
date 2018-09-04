@@ -148,8 +148,6 @@ class Pix2PixModel(BaseModel):
         self.loss_D.backward()
 
     def compute_losses_G(self):
-        # embed()
-
         mask_avg = torch.mean(self.mask_B_nc.type(torch.cuda.FloatTensor)) + .000001
 
         self.loss_0 = 0  # 0 for plot

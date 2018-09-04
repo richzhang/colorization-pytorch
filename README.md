@@ -51,20 +51,21 @@ cd colorization-pytorch
 
 ### Testing interactive colorization
 - Either
-  - (1) train a model (as described in the section above), which will train a model in `./checkpoints/siggraph_reg/latest_net_G.pth`
+  - (1) download the pretrained model by running ```bash pretrained_models/download_siggraph_model.sh```, which will give you a model in `./checkpoints/siggraph_pretrained/latest_net_G.pth`. Use `siggraph_pretrained` as `[[NAME]]` below.
 
-  - or (2) download the pretrained model by running ```bash pretrained_models/download_siggraph_model.sh```, which will give you a model in `./checkpoints/siggraph_pretrained/latest_net_G.pth`
+  - (2) train a model (as described in the section above), which will train a model in `./checkpoints/siggraph_reg/latest_net_G.pth`. In this case, use `siggraph_reg` as `[[NAME]]` below.
+
 
 - Test the model on validation data: ```bash python test.py --name [[NAME]] ```, where ``[[NAME]]`` is `siggraph_reg` or `siggraph_pretrained`.
 
-The test results will be saved to a html file here: `./results/siggraph_reg/latest_val/index.html`. This will test (1) automatic colorization (2) interactive colorization with some random hints, and (3) interactive colorization with lots of random hints.
+The test results will be saved to a html file here: `./results/[[NAME]]/latest_val/index.html`. This will test (1) automatic colorization, (2) interactive colorization with some random hints, and (3) interactive colorization with lots of random hints.
 
-- Test the model by making PSNR vs number of hints plot: ```bash python test_sweep.py --name siggraph_reg ```. This plot was used in Figure 6 of the [paper](https://arxiv.org/abs/1705.02999).
+- Test the model by making PSNR vs number of hints plot: ```bash python test_sweep.py --name [[NAME]] ```. This plot was used in Figure 6 of the [paper](https://arxiv.org/abs/1705.02999).
 
 
 ## Future
 
-I hope to reimplement [Colorful Image Colorization, ECCV 2016](https://github.com/richzhang/colorization), [Split-Brain Autoencoders, CVPR 2017](https://github.com/richzhang/splitbrainauto), as well as the Global Hints Network from [Interactive Colorization, SIGGRAPH 2017]() using this codebase as well.
+I hope to reimplement [Colorful Image Colorization, ECCV 2016](https://github.com/richzhang/colorization), [Split-Brain Autoencoders, CVPR 2017](https://github.com/richzhang/splitbrainauto), as well as the Global Hints Network from Interactive Colorization, SIGGRAPH 2017 using this codebase.
 
 ## Acknowledgments
-This code borrows from the [pytorch-CycleGAN](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) repository.
+This code borrows heavily from the [pytorch-CycleGAN](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) repository.
