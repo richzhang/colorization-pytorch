@@ -103,6 +103,8 @@ if __name__ == '__main__':
     plt.plot(num_points_hack, old_mean + old_std, 'r--')
     plt.plot(num_points_hack, old_mean - old_std, 'r--')
 
+    embed()
+    plt.xticks([.4,1,3,10,30,100,300],['0','1','3','10','30','100','300'])
     plt.xlabel('Number of points')
     plt.ylabel('PSNR [db]')
     plt.legend(loc=0)
