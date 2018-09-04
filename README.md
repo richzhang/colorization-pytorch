@@ -29,34 +29,25 @@ cd colorization-pytorch
 - Train a model: ```bash ./scripts/train_siggraph.sh```. This is a 2 stage training process. First, the network is trained for automatic colorization using classification loss. Results are in `./checkpoints/siggraph_class`. Then, the network is fine-tuned for interactive colorization using regression loss. Final results are in `./checkpoints/siggraph_reg`.
 
 - To view training results and loss plots, run `python -m visdom.server` and click the URL http://localhost:8097. The following values are monitored:
-
-  - G_CE is cross-entropy loss between predicted color distribution and ground truth color.
-
-  - G_entr is the entropy of the predicted distribution.
-
-  - G_entr_hint is the entropy of the predicted distribution at points where a color hint is given.
-
-  - G_L1_max is the L1 distance between the ground truth color and argmax of the predicted color distribution.
-
-  - G_L1_mean is the L1 distance between the ground truth color and mean of the predicted color distribution.
-
-  - G_L1_reg is the L1 distance between the ground truth color and the predicted color.
-
-  - G_fake_real is the L1 distance between the predicted color and the groundtruth color (in locations where a hint is given).
-
-  - G_fake_hint is the L1 distance between the predicted color and the input hint color (in locations where a hint is given). It's a measure of how much the network "trusts" the input hint.
-
-  - G_real_hint is the L1 distance between the groundtruth color and the input hint color (in locations where a hint is given).
+    * `G_CE` is cross-entropy loss between predicted color distribution and ground truth color.
+    * `G_entr` is the entropy of the predicted distribution.
+    * `G_entr_hint` is the entropy of the predicted distribution at points where a color hint is given.
+    * `G_L1_max` is the L1 distance between the ground truth color and argmax of the predicted color distribution.
+    * `G_L1_mean` is the L1 distance between the ground truth color and mean of the predicted color distribution.
+    * `G_L1_reg` is the L1 distance between the ground truth color and the predicted color.
+    * `G_fake_real` is the L1 distance between the predicted color and the groundtruth color (in locations where a hint is given).
+    * `G_fake_hint` is the L1 distance between the predicted color and the input hint color (in locations where a hint is given). It's a measure of how much the network "trusts" the input hint.
+    * `G_real_hint` is the L1 distance between the groundtruth color and the input hint color (in locations where a hint is given).
 
 
 ### Testing interactive colorization
-- Either
+- Either:
   - (1) download the pretrained model by running ```bash pretrained_models/download_siggraph_model.sh```, which will give you a model in `./checkpoints/siggraph_pretrained/latest_net_G.pth`. Use `siggraph_pretrained` as `[[NAME]]` below.
 
-  - (2) train a model (as described in the section above), which will train a model in `./checkpoints/siggraph_reg/latest_net_G.pth`. In this case, use `siggraph_reg` as `[[NAME]]` below.
+  - (2) train your own model (as described in the section above), which will leave a model in `./checkpoints/siggraph_reg2/latest_net_G.pth`. In this case, use `siggraph_reg2` as `[[NAME]]` below.
 
 
-- Test the model on validation data: ```bash python test.py --name [[NAME]] ```, where ``[[NAME]]`` is `siggraph_reg` or `siggraph_pretrained`.
+- Test the model on validation data: ```bash python test.py --name [[NAME]] ```, where ``[[NAME]]`` is `siggraph_reg2` or `siggraph_pretrained`.
 
 The test results will be saved to a html file here: `./results/[[NAME]]/latest_val/index.html`. This will test (1) automatic colorization, (2) interactive colorization with some random hints, and (3) interactive colorization with lots of random hints.
 
