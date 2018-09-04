@@ -2,7 +2,7 @@
 
 This is our PyTorch reimplementation for interactive image colorization. The code was written by [Richard Zhang](https://github.com/richzhang) and [Jun-Yan Zhu](https://github.com/junyanz).
 
-This repository contains training code. The original, official GitHub repo (in Caffe) is [here](https://richzhang.github.io/ideepcolor/).
+This repository contains training usage. The original, official GitHub repo (with an interactive GUI, and originally Caffe backend) is [here](https://richzhang.github.io/ideepcolor/). The official repo has been updated to support PyTorch models on the backend, which can be trained in this repository.
 
 ## Prerequisites
 - Linux or macOS
