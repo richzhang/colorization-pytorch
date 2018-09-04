@@ -26,7 +26,7 @@ cd colorization-pytorch
 ```python make_ilsvrc_dataset.py --in_path /PATH/TO/ILSVRC12```. This will make symlinks into the training set, and divide the ILSVRC validation set into validation and test splits for colorization.
 
 ### Training interactive colorization
-- Train a model: ```bash ./scripts/train_siggraph.sh```. This is a 2 stage training process. First, the network is trained for automatic colorization using classification loss for 15 epochs. Results are in `./checkpoints/siggraph_class`. Then, the network is fine-tuned for interactive colorization using regression loss for 10 epochs. Final results are in `./checkpoints/siggraph_reg`.
+- Train a model: ```bash ./scripts/train_siggraph.sh```. This is a 2 stage training process. First, the network is trained for automatic colorization using classification loss. Results are in `./checkpoints/siggraph_class`. Then, the network is fine-tuned for interactive colorization using regression loss. Final results are in `./checkpoints/siggraph_reg`.
 
 - To view training results and loss plots, run `python -m visdom.server` and click the URL http://localhost:8097. The following values are monitored:
 
