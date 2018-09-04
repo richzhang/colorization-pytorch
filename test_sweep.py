@@ -19,6 +19,7 @@ import progressbar as pb
 import shutil
 
 import datetime as dt
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()
@@ -94,8 +95,6 @@ if __name__ == '__main__':
     num_points_hack = 1. * num_points
     num_points_hack[0] = .4
 
-    import matplotlib.pyplot as plt
-
     plt.plot(num_points_hack, psnrs_mean, 'bo-', label=str_now)
     plt.plot(num_points_hack, psnrs_mean + psnrs_std, 'b--')
     plt.plot(num_points_hack, psnrs_mean - psnrs_std, 'b--')
@@ -103,11 +102,11 @@ if __name__ == '__main__':
     plt.plot(num_points_hack, old_mean + old_std, 'r--')
     plt.plot(num_points_hack, old_mean - old_std, 'r--')
 
-    embed()
-    plt.xticks([.4,1,3,10,30,100,300],['0','1','3','10','30','100','300'])
+    plt.xscale('log')
+    plt.xticks([.4,1,2,5,10,20,50,100,200,500],
+        ['Auto','1','2','5','10','20','50','100','200','500'])
     plt.xlabel('Number of points')
     plt.ylabel('PSNR [db]')
     plt.legend(loc=0)
-    plt.xscale('log')
     plt.xlim((num_points_hack[0], num_points_hack[-1]))
     plt.savefig('./checkpoints/%s/sweep_%s.png' % (opt.name,str_now))

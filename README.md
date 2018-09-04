@@ -4,7 +4,6 @@ This is our PyTorch reimplementation for interactive image colorization. The cod
 
 This repository contains training code. The original, official GitHub repo (in Caffe) is [here](https://richzhang.github.io/ideepcolor/).
 
-
 ## Prerequisites
 - Linux or macOS
 - Python 2 or 3
@@ -50,7 +49,7 @@ cd colorization-pytorch
 
 - Test the model by making PSNR vs number of hints plot: ```bash python test_sweep.py --name [[NAME]] ```. This plot was used in Figure 6 of the [paper](https://arxiv.org/abs/1705.02999). This test randomly reveals 6x6 color hint patches to the network, and sees how accurate the colorization is with respect to ground truth.
 
-<img src="./checkpoints/siggraph_pretrained/reference.png" height="200"/>
+   <img src="./checkpoints/siggraph_pretrained/sweep_reference.png" height="400"/>
 
 - Test the model interactively with the original official [repository](https://github.com/junyanz/interactive-deep-colorization). Follow installation instructions in that repo and run `python ideepcolor.py --backend pytorch --color_model [[PTH/TO/MODEL]] --dist_model [[PTH/TO/MODEL]]`.
 
