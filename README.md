@@ -57,5 +57,19 @@ cd colorization-pytorch
 
 I hope to reimplement the Global Hints Network, as well as older papers [Colorful Image Colorization, ECCV 2016](https://github.com/richzhang/colorization) and [Split-Brain Autoencoders, CVPR 2017](https://github.com/richzhang/splitbrainauto), using this codebase.
 
+### Citation
+If you use this code for your research, please cite our paper:
+```
+@article{zhang2017real,
+  title={Real-Time User-Guided Image Colorization with Learned Deep Priors},
+  author={Zhang, Richard and Zhu, Jun-Yan and Isola, Phillip and Geng, Xinyang and Lin, Angela S and Yu, Tianhe and Efros, Alexei A},
+  journal={ACM Transactions on Graphics (TOG)},
+  volume={9},
+  number={4},
+  year={2017},
+  publisher={ACM}
+}
+```
+
 ## Acknowledgments
 This code borrows heavily from the [pytorch-CycleGAN](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) repository.
