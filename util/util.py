@@ -67,7 +67,7 @@ def get_subset_dict(in_dict,keys):
         for key in keys:
             subset[key] = in_dict[key]
     else:
-        subset = visuals
+        subset = in_dict
     return subset
 
 
