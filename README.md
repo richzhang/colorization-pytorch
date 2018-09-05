@@ -1,4 +1,11 @@
 # Interactive Deep Colorization in PyTorch
+[Project Page](https://richzhang.github.io/ideepcolor/) |  [Paper](https://arxiv.org/abs/1705.02999) | [Video](https://youtu.be/eL5ilZgM89Q) | [Talk](https://www.youtube.com/watch?v=rp5LUSbdsys) | [UI code](https://github.com/junyanz/interactive-deep-colorization/)
+
+<img src='imgs/demo.gif' width=600>  
+
+Real-Time User-Guided Image Colorization with Learned Deep Priors.  
+[Richard Zhang](https://richzhang.github.io/)\*, [Jun-Yan Zhu](http://people.csail.mit.edu/junyanz/)\*, [Phillip Isola](http://people.eecs.berkeley.edu/~isola/), [Xinyang Geng](http://young-geng.xyz/), Angela S. Lin, Tianhe Yu, and [Alexei A. Efros](https://people.eecs.berkeley.edu/~efros/).  
+In ACM Transactions on Graphics (SIGGRAPH 2017).  
 
 This is our PyTorch reimplementation for interactive image colorization, written by [Richard Zhang](https://github.com/richzhang) and [Jun-Yan Zhu](https://github.com/junyanz).
 
