@@ -1,10 +1,10 @@
-name: pytorch-CycleGAN-and-pix2pix
+name: colorization-pytorch
 channels:
 - peterjc123
 - defaults
 dependencies:
 - python=3.5.5
-- pytorch=0.3.1
+- pytorch=0.4.1
 - scipy
 - pip:
   - dominate==2.3.1
