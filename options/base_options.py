@@ -11,7 +11,6 @@ class BaseOptions():
         self.initialized = False
 
     def initialize(self, parser):
-        parser.add_argument('--dataroot', type=str, default='/data/big/dataset/ILSVRC2012/train', help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
         parser.add_argument('--batch_size', type=int, default=25, help='input batch size')
         parser.add_argument('--loadSize', type=int, default=256, help='scale images to this size')
         parser.add_argument('--fineSize', type=int, default=176, help='then crop to this size')
@@ -55,7 +54,7 @@ class BaseOptions():
 
         parser.add_argument('--results_dir', type=str, default='./results/', help='saves results here.')
         parser.add_argument('--classification', action='store_true', help='backprop trunk using classification, otherwise use regression')
-        parser.add_argument('--phase', type=str, default='val', help='train, val, test, etc')
+        parser.add_argument('--phase', type=str, default='val', help='train_small, train, val, test, etc')
         parser.add_argument('--which_epoch', type=str, default='latest', help='which epoch to load? set to latest to use latest cached model')
         parser.add_argument('--how_many', type=int, default=200, help='how many test images to run')
         parser.add_argument('--aspect_ratio', type=float, default=1.0, help='aspect ratio of result images')

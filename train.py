@@ -12,6 +12,7 @@ from util import util
 if __name__ == '__main__':
     opt = TrainOptions().parse()
 
+    opt.dataroot = './dataset/ilsvrc2012/%s/' % opt.phase
     dataset = torchvision.datasets.ImageFolder(opt.dataroot,
                                                transform=transforms.Compose([
                                                    transforms.RandomChoice([transforms.Resize(opt.loadSize, interpolation=1),
@@ -23,11 +24,11 @@ if __name__ == '__main__':
                                                    transforms.RandomChoice([transforms.RandomResizedCrop(opt.fineSize, interpolation=1),
                                                                             transforms.RandomResizedCrop(opt.fineSize, interpolation=2),
                                                                             transforms.RandomResizedCrop(opt.fineSize, interpolation=3)]),
-                                                   transforms.RandomChoice([transforms.ColorJitter(brightness=.05, contrast=.05, saturation=.05, hue=.05),
-                                                                            transforms.ColorJitter(brightness=0, contrast=0, saturation=.05, hue=.1),
-                                                                            transforms.ColorJitter(brightness=0, contrast=0, saturation=0, hue=0), ]),
                                                    transforms.RandomHorizontalFlip(),
                                                    transforms.ToTensor()]))
+                                                   # transforms.RandomChoice([transforms.ColorJitter(brightness=.05, contrast=.05, saturation=.05, hue=.05),
+                                                   #                          transforms.ColorJitter(brightness=0, contrast=0, saturation=.05, hue=.1),
+                                                   #                          transforms.ColorJitter(brightness=0, contrast=0, saturation=0, hue=0), ]),
     dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
 
     dataset_size = len(dataset)

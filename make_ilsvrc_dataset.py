@@ -13,6 +13,15 @@ opt = parser.parse_args()
 orig_path = opt.in_path
 print('Copying ILSVRC from...[%s]'%orig_path)
 
+# Copy over part of training set (for initializer)
+trn_small_path = os.path.join(opt.out_path,'train_small')
+util.mkdirs(opt.out_path)
+util.mkdirs(trn_small_path)
+train_subdirs = os.listdir(os.path.join(opt.in_path,'train'))
+for train_subdir in train_subdirs[:10]:
+	os.symlink(os.path.join(opt.in_path,'train',train_subdir),os.path.join(trn_small_path,train_subdir))
+print('Making small training set in...[%s]'%trn_small_path)
+
 # Copy over whole training set
 trn_path = os.path.join(opt.out_path,'train')
 util.mkdirs(opt.out_path)
