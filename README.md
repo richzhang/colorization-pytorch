@@ -50,11 +50,15 @@ cd colorization-pytorch
 ### Testing interactive colorization
 - Get a model. Either:
     * (1) download the pretrained model by running ```bash pretrained_models/download_siggraph_model.sh```, which will give you a few models.
-        * [Recommended] `./checkpoints/siggraph_caffemodel/latest_net_G.pth` is the original caffemodel weights, converted to PyTorch. It is recommended.
-        * `./checkpoints/siggraph_retrained/latest_net_G.pth` is the retrained model.
-    * (2) train your own model (as described in the section above), which will leave a model in `./checkpoints/siggraph_reg2/latest_net_G.pth`. In this case, use `siggraph_reg2` as `[[NAME]]` below.
+        * Original caffe weights: [*Recommended*] `./checkpoints/siggraph_caffemodel/latest_net_G.pth` is the original caffemodel weights, converted to PyTorch. It is recommended. Be sure to set `--mask_cent 0` when running it.
+        * Retrained model: `./checkpoints/siggraph_retrained/latest_net_G.pth`. The model achieves better PSNR but performs qualitatively differently. Note that this repository is an approximate reimplementation of the siggraph paper.
+    * (2) train your own model (as described in the section above), which will leave a model in `./checkpoints/siggraph_reg2/latest_net_G.pth`
 
-- Test the model on validation data: ```python test.py --name [[NAME]] ```, where ``[[NAME]]`` is `siggraph_reg2` or `siggraph_pretrained`. The test results will be saved to an HTML file in `./results/[[NAME]]/latest_val/index.html`. For each image in the validation set, it will test (1) automatic colorization, (2) interactive colorization with a few random hints, and (3) interactive colorization with lots of random hints.
+- Test the model on validation data:
+    * ```python test.py --name siggraph_caffemodel --mask_cent 0``` for original caffemodel weights
+    * ```python test.py --name siggraph_retrained ``` for retrained weights.
+    * ```python test.py --name siggraph_reg2 ``` if you retrained your own model
+    The test results will be saved to an HTML file in `./results/[[NAME]]/latest_val/index.html`. For each image in the validation set, it will test (1) automatic colorization, (2) interactive colorization with a few random hints, and (3) interactive colorization with lots of random hints.
 
 - Test the model by making PSNR vs. the number of hints plot: ```python test_sweep.py --name [[NAME]] ```. This plot was used in Figure 6 of the [paper](https://arxiv.org/abs/1705.02999). This test randomly reveals 6x6 color hint patches to the network and sees how accurate the colorization is with respect to the ground truth.
 
