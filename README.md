@@ -49,7 +49,9 @@ cd colorization-pytorch
 
 ### Testing interactive colorization
 - Get a model. Either:
-    * (1) download the pretrained model by running ```bash pretrained_models/download_siggraph_model.sh```, which will give you a model in `./checkpoints/siggraph_pretrained/latest_net_G.pth`. Use `siggraph_pretrained` as `[[NAME]]` below.
+    * (1) download the pretrained model by running ```bash pretrained_models/download_siggraph_model.sh```, which will give you a few models.
+        * [Recommended] `./checkpoints/siggraph_caffemodel/latest_net_G.pth` is the original caffemodel weights, converted to PyTorch. It is recommended.
+        * `./checkpoints/siggraph_retrained/latest_net_G.pth` is the retrained model.
     * (2) train your own model (as described in the section above), which will leave a model in `./checkpoints/siggraph_reg2/latest_net_G.pth`. In this case, use `siggraph_reg2` as `[[NAME]]` below.
 
 - Test the model on validation data: ```python test.py --name [[NAME]] ```, where ``[[NAME]]`` is `siggraph_reg2` or `siggraph_pretrained`. The test results will be saved to an HTML file in `./results/[[NAME]]/latest_val/index.html`. For each image in the validation set, it will test (1) automatic colorization, (2) interactive colorization with a few random hints, and (3) interactive colorization with lots of random hints.
