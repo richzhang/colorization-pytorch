@@ -26,7 +26,7 @@ if __name__ == '__main__':
                                                                             transforms.RandomResizedCrop(opt.fineSize, interpolation=3)]),
                                                    transforms.RandomHorizontalFlip(),
                                                    transforms.ToTensor()]))
-    dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
+    dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, shuffle=True, num_workers=int(opt.num_threads))
 
     dataset_size = len(dataset)
     print('#training images = %d' % dataset_size)
