@@ -1,19 +1,11 @@
-import os
 from options.train_options import TrainOptions
-from data import CreateDataLoader
 from models import create_model
-from util.visualizer import save_images
-from util import html
 
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import torchvision.datasets as datasets
-import torchvision.models as models
-from torch.autograd import Variable
 
 from util import util
-from IPython import embed
 import numpy as np
 import progressbar as pb
 import shutil
@@ -24,7 +16,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     opt = TrainOptions().parse()
     opt.load_model = True
-    opt.nThreads = 1   # test code only supports nThreads = 1
+    opt.num_threads = 1   # test code only supports num_threads = 1
     opt.batch_size = 1  # test code only supports batch_size = 1
     opt.display_id = -1  # no visdom display
     opt.phase = 'test'
@@ -32,7 +24,7 @@ if __name__ == '__main__':
     opt.loadSize = 256
     opt.how_many = 1000
     opt.aspect_ratio = 1.0
-    opt.sample_Ps = [6,]
+    opt.sample_Ps = [6, ]
     opt.load_model = True
 
     # number of random points to assign
@@ -82,9 +74,9 @@ if __name__ == '__main__':
     psnrs_mean = np.mean(psnrs, axis=0)
     psnrs_std = np.std(psnrs, axis=0) / np.sqrt(opt.how_many)
 
-    np.save('./checkpoints/%s/psnrs_mean_%s' % (opt.name,str_now), psnrs_mean)
-    np.save('./checkpoints/%s/psnrs_std_%s' % (opt.name,str_now), psnrs_std)
-    np.save('./checkpoints/%s/psnrs_%s' % (opt.name,str_now), psnrs)
+    np.save('./checkpoints/%s/psnrs_mean_%s' % (opt.name, str_now), psnrs_mean)
+    np.save('./checkpoints/%s/psnrs_std_%s' % (opt.name, str_now), psnrs_std)
+    np.save('./checkpoints/%s/psnrs_%s' % (opt.name, str_now), psnrs)
     print(', ').join(['%.2f' % psnr for psnr in psnrs_mean])
 
     old_results = np.load('./resources/psnrs_siggraph.npy')
@@ -103,10 +95,10 @@ if __name__ == '__main__':
     plt.plot(num_points_hack, old_mean - old_std, 'r--')
 
     plt.xscale('log')
-    plt.xticks([.4,1,2,5,10,20,50,100,200,500],
-        ['Auto','1','2','5','10','20','50','100','200','500'])
+    plt.xticks([.4, 1, 2, 5, 10, 20, 50, 100, 200, 500],
+               ['Auto', '1', '2', '5', '10', '20', '50', '100', '200', '500'])
     plt.xlabel('Number of points')
     plt.ylabel('PSNR [db]')
     plt.legend(loc=0)
     plt.xlim((num_points_hack[0], num_points_hack[-1]))
-    plt.savefig('./checkpoints/%s/sweep_%s.png' % (opt.name,str_now))
+    plt.savefig('./checkpoints/%s/sweep_%s.png' % (opt.name, str_now))

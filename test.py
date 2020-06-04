@@ -11,7 +11,6 @@ import torchvision
 import torchvision.transforms as transforms
 
 from util import util
-from IPython import embed
 import numpy as np
 
 
@@ -22,7 +21,7 @@ if __name__ == '__main__':
 
     opt = TrainOptions().parse()
     opt.load_model = True
-    opt.nThreads = 1   # test code only supports nThreads = 1
+    opt.num_threads = 1   # test code only supports num_threads = 1
     opt.batch_size = 1  # test code only supports batch_size = 1
     opt.display_id = -1  # no visdom display
     opt.phase = 'val'

@@ -26,9 +26,6 @@ if __name__ == '__main__':
                                                                             transforms.RandomResizedCrop(opt.fineSize, interpolation=3)]),
                                                    transforms.RandomHorizontalFlip(),
                                                    transforms.ToTensor()]))
-                                                   # transforms.RandomChoice([transforms.ColorJitter(brightness=.05, contrast=.05, saturation=.05, hue=.05),
-                                                   #                          transforms.ColorJitter(brightness=0, contrast=0, saturation=.05, hue=.1),
-                                                   #                          transforms.ColorJitter(brightness=0, contrast=0, saturation=0, hue=0), ]),
     dataset_loader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, shuffle=True)
 
     dataset_size = len(dataset)
@@ -70,11 +67,9 @@ if __name__ == '__main__':
             if total_steps % opt.print_freq == 0:
                 losses = model.get_current_losses()
                 # time to do forward&backward
-                # t = (time.time() - iter_start_time) / opt.batch_size
                 t = time.time() - iter_start_time
                 visualizer.print_current_losses(epoch, epoch_iter, losses, t, t_data)
                 if opt.display_id > 0:
-                    # embed()
                     visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, opt, losses)
 
             if total_steps % opt.save_latest_freq == 0:

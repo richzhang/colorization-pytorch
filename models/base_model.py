@@ -5,7 +5,6 @@ from . import networks
 
 
 class BaseModel():
-
     # modify parser to add command line options,
     # and also change the default values if needed
     @staticmethod
